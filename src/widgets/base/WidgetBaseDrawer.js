@@ -1,10 +1,9 @@
 import { createDrawerNavigator } from "@react-navigation/drawer";
 import { NavigationContainer } from "@react-navigation/native";
 import WidgetBaseSidebar from "./WidgetBaseSidebar";
-import RouterUser from "../../routers/RouterUser";
 import RouterBarang from "../../routers/RouterBarang";
 import RouterPemasok from "../../routers/RouterPemasok";
-
+import RouterUser from "../../routers/RouterUser";
 const Drawer = createDrawerNavigator();
 
 const WidgetBaseDrawer = () => {
@@ -13,16 +12,6 @@ const WidgetBaseDrawer = () => {
       <Drawer.Navigator
         screenOptions={{ headerShown: false }}
         drawerContent={(props) => <WidgetBaseSidebar {...props} />}>
-        <Drawer.Screen
-          options={
-            {
-              // drawerItemStyle: { display: "none" },
-              // swipeEnabled: false,
-            }
-          }
-          name="RouterUser"
-          component={RouterUser}
-        />
         <Drawer.Screen
           options={{
             drawerLabel: "Barang",
@@ -38,6 +27,16 @@ const WidgetBaseDrawer = () => {
           }}
           name="RouterPemasok"
           component={RouterPemasok}
+        />
+        <Drawer.Screen
+          options={{
+            // drawerItemStyle: { display: "none" },
+            // swipeEnabled: false,
+            drawerLabel: "User",
+            title: "User",
+          }}
+          name="RouterUser"
+          component={RouterUser}
         />
       </Drawer.Navigator>
     </NavigationContainer>

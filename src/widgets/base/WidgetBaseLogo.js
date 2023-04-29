@@ -3,7 +3,7 @@ import { Image } from "react-native";
 
 const WidgetBaseLogo = () => {
   const url =
-    "https://icons.iconarchive.com/icons/kevin-thompson/love-and-breakup/512/shopping-bag-heart-icon.png";
+    "https://icons.iconarchive.com/icons/iconka/business-outline/512/cash-register-icon.png";
   return <Image source={{ uri: url }} style={styles.image} />;
 };
 
@@ -15,5 +15,6 @@ const styles = StyleSheet.create({
     width: 150,
     height: 150,
     alignSelf: "center",
+    marginBottom: 20,
   },
 });

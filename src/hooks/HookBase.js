@@ -1,85 +1,57 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import {
-  ServiceBaseGetToken,
-  ServiceBaseRemoveToken,
-} from "../services/ServiceBase";
-import { Banner } from "react-native-paper";
-import { Image } from "react-native";
+import { ServiceBaseGetToken } from "../services/ServiceBase";
+
 import { useIsFocused } from "@react-navigation/native";
-import WidgetBaseLoader from "../widgets/base/WidgetBaseLoader";
-import { View } from "react-native";
 
 export function useHookBasePreventPermission({ navigation }) {
   const isFocus = useIsFocused();
   useEffect(() => {
     ServiceBaseGetToken()
-      .then(async (token) => {
+      .then((token) => {
         if (token) {
           navigation.navigate("RouterBarang", { screen: "ScreenBarangList" });
         }
       })
-      .catch(async (error) => {});
+      .catch(() => {});
   }, [isFocus]);
 }
 
 export function useHookBaseApplyPermission({ navigation }) {
   const isFocus = useIsFocused();
-  const [isAuthenticated, setIsAuthenticated] = useState(null);
-  const [complete, setComplete] = useState(false);
 
-  useEffect(() => {
-    setTimeout(() => {
-      ServiceBaseGetToken()
-        .then(async (token) => {
-          if (token) setIsAuthenticated(true);
-          else {
-            setIsAuthenticated(false);
-            await ServiceBaseRemoveToken();
-          }
-          setComplete(true);
-        })
-        .catch(async (error) => {});
-    }, 1000);
+  const applyPermission = useMemo(() => {
+    ServiceBaseGetToken()
+      .then((token) => {
+        if (!token) {
+          navigation.reset({
+            index: 0,
+            routes: [{ name: "RouterUser" }],
+          });
+        }
+      })
+      .catch((error) => {
+        console.log(error);
+      });
   }, [isFocus]);
 
-  const info = (child) => (
-    <>
-      <WidgetBaseLoader complete={complete} />
-      {complete && isAuthenticated === false && (
-        <View style={{ flex: 1, justifyContent: "center", margin: 16 }}>
-          <Banner
-            visible={isAuthenticated === false}
-            actions={[
-              {
-                label: "Login",
-                onPress: () =>
-                  navigation.navigate("RouterUser", {
-                    screen: "ScreenUserLogin",
-                  }),
-              },
-            ]}
-            icon={({ size }) => (
-              <Image
-                source={{
-                  uri: "https://icons.iconarchive.com/icons/hopstarter/soft-scraps/128/Lock-Lock-icon.png",
-                }}
-                style={{
-                  width: size,
-                  height: size,
-                }}
-              />
-            )}>
-            Maaf, sesi login Anda telah habis. Silakan login kembali untuk
-            melanjutkan.
-          </Banner>
-        </View>
-      )}
+  return applyPermission;
+}
 
-      {complete && isAuthenticated === true && child}
-    </>
-  );
+export function useHookBaseIsAuthenticated({ navigation }) {
+  const isFocus = useIsFocused();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  return [info, isAuthenticated];
+  useEffect(() => {
+    ServiceBaseGetToken()
+      .then((token) => {
+        if (token) {
+          setIsAuthenticated(true);
+        }
+      })
+      .catch(() => {});
+  }, [isFocus]);
+
+  return isAuthenticated;
 }
 
 export function useHookBaseIsMounted() {

@@ -1,24 +1,24 @@
-import { memo, useEffect, useState } from "react";
+import { memo, useCallback, useEffect, useState } from "react";
 import { ServiceBarangCreate } from "../../services/ServiceBarang";
 import WidgetBaseContainer from "../../widgets/base/WidgetBaseContainer";
 import { Appbar, Button, TextInput } from "react-native-paper";
 import WidgetBaseGroup from "../../widgets/base/WidgetBaseGroup";
 import SchemaBarang from "../../schema/SchemaBarang";
 import WidgetBaseLoader from "../../widgets/base/WidgetBaseLoader";
-import { useHookBaseApplyPermission } from "../../hooks/HookBase";
+import { useFocusEffect } from "@react-navigation/native";
 
-function ScreenBarangCreate({ navigation }) {
-  const [permission, isAuthenticated] = useHookBaseApplyPermission({
-    navigation,
-  });
+function ScreenBarangCreate({ navigation, route }) {
   const [barang, setBarang] = useState(SchemaBarang);
   const [complete, setComplete] = useState(false);
 
-  useEffect(() => {
-    setTimeout(() => {
-      setComplete(true);
-    }, 2000);
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      const time = setTimeout(() => {
+        setComplete(true);
+      }, 1000);
+      return () => clearTimeout(time);
+    }, [])
+  );
 
   const handleChange = (name, value) => {
     setBarang((values) => ({ ...values, [name]: value }));

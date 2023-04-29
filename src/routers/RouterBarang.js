@@ -4,6 +4,7 @@ import ScreenBarangCreate from "../screens/barang/ScreenBarangCreate";
 import ScreenBarangEdit from "../screens/barang/ScreenBarangEdit";
 import { enableScreens } from "react-native-screens";
 enableScreens(false);
+
 const Stack = createNativeStackNavigator();
 
 const RouterBarang = () => {

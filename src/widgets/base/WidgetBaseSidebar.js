@@ -1,13 +1,17 @@
 import {
   DrawerContentScrollView,
+  DrawerItem,
   DrawerItemList,
 } from "@react-navigation/drawer";
 import { Image, SafeAreaView, StyleSheet, Text } from "react-native";
-import { Divider } from "react-native-paper";
+import { Divider, Drawer } from "react-native-paper";
+import { useHookBaseIsAuthenticated } from "../../hooks/HookBase";
 
 const WidgetBaseSidebar = (props) => {
+  // const isAuthenticated = useHookBaseIsAuthenticated(props);
+
   const imageProfile =
-    "https://icons.iconarchive.com/icons/graphicloads/100-flat/128/purchase-icon.png";
+    "https://icons.iconarchive.com/icons/iconka/lucky-leprechaun/256/leprechaun-outline-icon.png";
   return (
     <SafeAreaView style={styles.safeAreaView}>
       <Image source={{ uri: imageProfile }} style={styles.imageProfile} />

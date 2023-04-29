@@ -1,5 +1,5 @@
 import { useIsFocused } from "@react-navigation/native";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Appbar, Button, TextInput } from "react-native-paper";
 import WidgetBaseContainer from "../../widgets/base/WidgetBaseContainer";
 import WidgetBaseGroup from "../../widgets/base/WidgetBaseGroup";
@@ -10,13 +10,9 @@ import {
 import { Alert, InteractionManager } from "react-native";
 import _ from "lodash";
 import WidgetBaseLoader from "../../widgets/base/WidgetBaseLoader";
-import { useHookBaseApplyPermission } from "../../hooks/HookBase";
+import { useFocusEffect } from "@react-navigation/native";
 
 function ScreenBarangEdit({ navigation, route }) {
-  const [permission, isAuthenticated] = useHookBaseApplyPermission({
-    navigation,
-  });
-  const isFocus = useIsFocused();
   const [complete, setComplete] = useState(false);
   const [barang, setBarang] = useState({});
 
@@ -25,13 +21,13 @@ function ScreenBarangEdit({ navigation, route }) {
   };
 
   useEffect(() => {
-    setTimeout(() => {
-      if (route.params.barang) {
-        setBarang(route.params.barang);
-        setComplete(true);
-      }
-    }, 1500);
-  }, []);
+    const time = setTimeout(() => {
+      setBarang(route.params.barang);
+      setComplete(true);
+    }, 1000);
+
+    return () => clearTimeout(time);
+  }, [route.params.barang]);
 
   const handleServiceBarangEdit = () => {
     const payload = {
@@ -42,10 +38,10 @@ function ScreenBarangEdit({ navigation, route }) {
     };
 
     ServiceBarangEdit(barang.kodeBarang, payload)
-      .then((data) => {
+      .then(() => {
         navigation.goBack();
       })
-      .catch((error) => {});
+      .catch(() => {});
   };
 
   const handleServiceBarangDelete = () => {
@@ -75,7 +71,7 @@ function ScreenBarangEdit({ navigation, route }) {
           disabled={!complete}
           onPress={() => navigation.goBack()}
         />
-        <Appbar.Content disabled={!complete} title="Edit Barang" />
+        <Appbar.Content title="Edit Barang" />
         <Appbar.Action
           disabled={!complete}
           icon="trash-can-outline"
@@ -83,8 +79,7 @@ function ScreenBarangEdit({ navigation, route }) {
         />
       </Appbar.Header>
       <WidgetBaseLoader complete={complete} />
-      {complete && permission()}
-      {complete && isAuthenticated == true && (
+      {complete && (
         <WidgetBaseContainer>
           <WidgetBaseGroup>
             <TextInput
