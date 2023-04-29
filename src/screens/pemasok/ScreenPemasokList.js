@@ -1,31 +1,46 @@
-import { useIsFocused } from "@react-navigation/native";
-import { useEffect, useState } from "react";
+import { useFocusEffect, useIsFocused } from "@react-navigation/native";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { ServicePemasokList } from "../../services/ServicePemasok";
-import { Appbar, Divider, List } from "react-native-paper";
-import { FlatList, View } from "react-native";
+import { Appbar, DataTable, Searchbar } from "react-native-paper";
+import _ from "lodash";
+import WidgetBaseLoader from "../../widgets/base/WidgetBaseLoader";
+import { View } from "react-native";
+import WidgetBaseContainer from "../../widgets/base/WidgetBaseContainer";
 import WidgetBaseFABCreate from "../../widgets/base/WidgetBaseFABCreate";
 
-export default function ScreenPemasokList({ navigation }) {
-  const isFocus = useIsFocused();
+const ScreenPemasokList = ({ navigation }) => {
   const [daftarPemasok, setDaftarPemasok] = useState();
-  const [, setPagination] = useState();
-  const [page] = useState(1);
-  const [terms] = useState("");
+  const [pagination, setPagination] = useState();
+  const [page, setPage] = useState(1);
+  const [terms, setTerms] = useState("");
+  const [complete, setComplete] = useState(false);
 
-  useEffect(() => {
+  const handleServicePemasokList = () => {
+    setDaftarPemasok([]);
     ServicePemasokList(page, terms)
       .then(({ results, pagination }) => {
         setDaftarPemasok(results);
         setPagination(pagination);
       })
-      .catch((error) => {});
-  }, [isFocus, page]);
+      .catch((error) => {
+        console.log(error);
+      });
+  };
 
-  const renderItem = ({ item }) => (
-    <>
-      <List.Item title={item.namaPemasok} description={item.teleponPemasok} />
-      <Divider />
-    </>
+  useMemo(() => {
+    handleServicePemasokList();
+    return "A/N";
+  }, [terms, page]);
+
+  useFocusEffect(
+    useCallback(() => {
+      const timer = setTimeout(() => {
+        handleServicePemasokList();
+        !complete && setComplete(true);
+      }, 1000);
+
+      return () => clearTimeout(timer);
+    }, [])
   );
 
   return (
@@ -33,15 +48,70 @@ export default function ScreenPemasokList({ navigation }) {
       <Appbar.Header>
         <Appbar.Action icon="menu" onPress={() => navigation.toggleDrawer()} />
         <Appbar.Content title="Pemasok" />
-      </Appbar.Header>
-      <View style={{ flex: 1 }}>
-        <FlatList
-          data={daftarPemasok}
-          renderItem={renderItem}
-          keyExtractor={(item, index) => index}
+        <Appbar.Action
+          icon="refresh"
+          onPress={() => {
+            setTerms("");
+            setPage(1);
+          }}
         />
-      </View>
+        <Appbar.Action
+          icon="arrow-left"
+          disabled={_.isNull(pagination?.prev)}
+          onPress={() => {
+            setPage(pagination?.prev);
+          }}
+        />
+        <Appbar.Action
+          icon="arrow-right"
+          disabled={_.isNull(pagination?.next)}
+          onPress={() => {
+            setPage(pagination?.next);
+          }}
+        />
+      </Appbar.Header>
+
+      <WidgetBaseLoader complete={complete} />
+
+      <WidgetBaseContainer>
+        {complete && (
+          <View>
+            <Searchbar
+              placeholder="Search"
+              value={terms || ""}
+              onChangeText={(text) => {
+                page > 1 && setPage(1);
+                setTerms(text);
+              }}
+            />
+            <DataTable>
+              <DataTable.Header>
+                <DataTable.Title>Kode Pemasok</DataTable.Title>
+                <DataTable.Title>Nama Pemasok</DataTable.Title>
+                <DataTable.Title>Telepon</DataTable.Title>
+                <DataTable.Title>Alamat</DataTable.Title>
+              </DataTable.Header>
+            </DataTable>
+
+            {daftarPemasok.length === 0 && (
+              <WidgetBaseLoader complete={false} />
+            )}
+
+            {daftarPemasok.map((pemasok, index) => (
+              <DataTable.Row key={index} onPress={() => {}}>
+                <DataTable.Cell>{pemasok.kodePemasok}</DataTable.Cell>
+                <DataTable.Cell>{pemasok.namaPemasok}</DataTable.Cell>
+                <DataTable.Cell>{pemasok.teleponPemasok}</DataTable.Cell>
+                <DataTable.Cell>{pemasok.alamatPemasok}</DataTable.Cell>
+              </DataTable.Row>
+            ))}
+          </View>
+        )}
+      </WidgetBaseContainer>
+
       <WidgetBaseFABCreate action={() => {}} />
     </>
   );
-}
+};
+
+export default ScreenPemasokList;
