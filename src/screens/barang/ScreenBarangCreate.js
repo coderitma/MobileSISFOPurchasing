@@ -67,7 +67,7 @@ function ScreenBarangCreate({ navigation, route }) {
             />
 
             <TextInput
-              value={`${barang.hargaBeli}`}
+              value={`${barang.hargaBeli || ""}`}
               onChangeText={(text) => handleChange("hargaBeli", parseInt(text))}
               returnKeyType={"next"}
               keyboardType={"numeric"}
@@ -76,7 +76,7 @@ function ScreenBarangCreate({ navigation, route }) {
             />
 
             <TextInput
-              value={`${barang.hargaJual}`}
+              value={`${barang.hargaJual || ""}`}
               onChangeText={(text) => handleChange("hargaJual", parseInt(text))}
               returnKeyType={"next"}
               keyboardType={"numeric"}
@@ -85,7 +85,7 @@ function ScreenBarangCreate({ navigation, route }) {
             />
 
             <TextInput
-              value={`${barang.jumlahBarang}`}
+              value={`${barang.jumlahBarang || ""}`}
               onChangeText={(text) =>
                 handleChange("jumlahBarang", parseInt(text))
               }

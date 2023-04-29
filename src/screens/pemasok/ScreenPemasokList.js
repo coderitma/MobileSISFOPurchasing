@@ -109,7 +109,9 @@ const ScreenPemasokList = ({ navigation }) => {
         )}
       </WidgetBaseContainer>
 
-      <WidgetBaseFABCreate action={() => {}} />
+      <WidgetBaseFABCreate
+        action={() => navigation.navigate("ScreenPemasokCreate")}
+      />
     </>
   );
 };
