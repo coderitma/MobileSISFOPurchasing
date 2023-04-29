@@ -98,7 +98,11 @@ const ScreenPemasokList = ({ navigation }) => {
             )}
 
             {daftarPemasok.map((pemasok, index) => (
-              <DataTable.Row key={index} onPress={() => {}}>
+              <DataTable.Row
+                key={index}
+                onPress={() =>
+                  navigation.navigate("ScreenPemasokEdit", { pemasok })
+                }>
                 <DataTable.Cell>{pemasok.kodePemasok}</DataTable.Cell>
                 <DataTable.Cell>{pemasok.namaPemasok}</DataTable.Cell>
                 <DataTable.Cell>{pemasok.teleponPemasok}</DataTable.Cell>

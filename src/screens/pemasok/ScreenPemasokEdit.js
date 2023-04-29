@@ -1,34 +1,57 @@
-import { useCallback, useState } from "react";
-import SchemaPemasok from "../../schema/SchemaPemasok";
-import { useFocusEffect } from "@react-navigation/native";
-import { ServicePemasokCreate } from "../../services/ServicePemasok";
+import { useEffect, useState } from "react";
+import {
+  ServicePemasokDelete,
+  ServicePemasokEdit,
+} from "../../services/ServicePemasok";
+import { Alert } from "react-native";
 import { Appbar, Button, TextInput } from "react-native-paper";
 import WidgetBaseLoader from "../../widgets/base/WidgetBaseLoader";
 import WidgetBaseContainer from "../../widgets/base/WidgetBaseContainer";
 import WidgetBaseGroup from "../../widgets/base/WidgetBaseGroup";
 
-const ScreenPemasokCreate = ({ navigation, route }) => {
-  const [pemasok, setPemasok] = useState(SchemaPemasok);
+const ScreenPemasokEdit = ({ navigation, route }) => {
   const [complete, setComplete] = useState(false);
-
-  useFocusEffect(
-    useCallback(() => {
-      const time = setTimeout(() => {
-        setComplete(true);
-      }, 1000);
-    }, [])
-  );
+  const [pemasok, setPemasok] = useState({});
 
   const handleChange = (name, value) => {
     setPemasok((values) => ({ ...values, [name]: value }));
   };
 
-  const handleServicePemasokCreate = () => {
-    ServicePemasokCreate(pemasok)
-      .then(() => {
+  useEffect(() => {
+    const time = setTimeout(() => {
+      setPemasok(route.params.pemasok);
+      setComplete(true);
+    }, 1000);
+
+    return () => clearTimeout(time);
+  }, [route.params.pemasok]);
+
+  const handleServicePemasokEdit = () => {
+    ServicePemasokEdit(pemasok.kodePemasok, pemasok)
+      .then((response) => {
         navigation.goBack();
       })
       .catch(() => {});
+  };
+
+  const handleServicePemasokDelete = () => {
+    Alert.alert("Konfirmasi", "Yakin ingin menghapus?", [
+      {
+        text: "Yakin",
+        onPress: () => {
+          ServicePemasokDelete(pemasok.kodePemasok)
+            .then(() => {
+              Alert.alert("Berhasil", "Barang berhasil dihapus!");
+              navigation.goBack();
+            })
+            .catch(() => {});
+        },
+      },
+      {
+        text: "Batal",
+        style: "cancel",
+      },
+    ]);
   };
 
   return (
@@ -38,7 +61,12 @@ const ScreenPemasokCreate = ({ navigation, route }) => {
           disabled={!complete}
           onPress={() => navigation.goBack()}
         />
-        <Appbar.Content title="Tambah Pemasok" />
+        <Appbar.Content title="Edit Pemasok" />
+        <Appbar.Action
+          disabled={!complete}
+          icon="trash-can-outline"
+          onPress={handleServicePemasokDelete}
+        />
       </Appbar.Header>
       <WidgetBaseLoader complete={complete} />
       {complete && (
@@ -49,19 +77,23 @@ const ScreenPemasokCreate = ({ navigation, route }) => {
               onChangeText={(text) => handleChange("kodePemasok", text)}
               mode="outlined"
               label="Kode Pemasok"
+              disabled
             />
+
             <TextInput
               value={pemasok.namaPemasok || ""}
               onChangeText={(text) => handleChange("namaPemasok", text)}
               mode="outlined"
               label="Nama Pemasok"
             />
+
             <TextInput
               value={pemasok.teleponPemasok || ""}
               onChangeText={(text) => handleChange("teleponPemasok", text)}
               mode="outlined"
               label="Telepon Pemasok"
             />
+
             <TextInput
               value={pemasok.alamatPemasok || ""}
               onChangeText={(text) => handleChange("alamatPemasok", text)}
@@ -70,11 +102,8 @@ const ScreenPemasokCreate = ({ navigation, route }) => {
             />
           </WidgetBaseGroup>
           <WidgetBaseGroup>
-            <Button
-              compact={false}
-              onPress={handleServicePemasokCreate}
-              mode="contained">
-              Simpan
+            <Button onPress={handleServicePemasokEdit} mode="contained">
+              Simpan Perubahan
             </Button>
           </WidgetBaseGroup>
         </WidgetBaseContainer>
@@ -83,4 +112,4 @@ const ScreenPemasokCreate = ({ navigation, route }) => {
   );
 };
 
-export default ScreenPemasokCreate;
+export default ScreenPemasokEdit;
