@@ -33,3 +33,42 @@ export const ServicePemasokCreate = (payload) => {
       .catch((error) => reject(error));
   });
 };
+
+export const ServicePemasokEdit = (kodePemasok, payload) => {
+  return new Promise(async (resolve, reject) => {
+    const config = {
+      headers: {
+        "x-access-token": await ServiceBaseGetToken(),
+      },
+    };
+
+    ServiceBaseRequest.put(
+      `${CONFIG_BASE_API_URL}/pemasok/${kodePemasok}`,
+      payload,
+      config
+    )
+      .then((response) => {
+        resolve(response.data);
+      })
+      .catch((error) => reject(error));
+  });
+};
+
+export const ServicePemasokDelete = (kodePemasok) => {
+  return new Promise(async (resolve, reject) => {
+    const config = {
+      headers: {
+        "x-access-token": await ServiceBaseGetToken(),
+      },
+    };
+
+    ServiceBaseRequest.delete(
+      `${CONFIG_BASE_API_URL}/pemasok/${kodePemasok}`,
+      config
+    )
+      .then(() => {
+        resolve(null);
+      })
+      .catch((error) => reject(error));
+  });
+};
