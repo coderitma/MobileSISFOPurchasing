@@ -1,12 +1,13 @@
 import _ from "lodash";
-import { memo, useCallback, useEffect, useMemo, useState } from "react";
-import { InteractionManager, View } from "react-native";
+import { memo, useCallback, useMemo, useState } from "react";
+import { View } from "react-native";
 import { Appbar, DataTable, Searchbar } from "react-native-paper";
 import { ServiceBarangList } from "../../services/ServiceBarang";
 import WidgetBaseFABCreate from "../../widgets/base/WidgetBaseFABCreate";
 import WidgetBaseLoader from "../../widgets/base/WidgetBaseLoader";
 import WidgetBaseContainer from "../../widgets/base/WidgetBaseContainer";
 import { useFocusEffect } from "@react-navigation/native";
+import { useHookUserAuthenticationRedirect } from "../../hooks/HookUser";
 
 const ScreenBarangList = ({ navigation }) => {
   const [daftarBarang, setDaftarBarang] = useState([]);
@@ -115,6 +116,6 @@ const ScreenBarangList = ({ navigation }) => {
       />
     </>
   );
-}
+};
 
 export default memo(ScreenBarangList);

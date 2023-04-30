@@ -17,3 +17,16 @@ export default function RouterPemasok() {
     </Stack.Navigator>
   );
 }
+
+export const RouterPemasokAuthenticated = () => {
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="ScreenPemasokList" component={ScreenPemasokList} />
+      <Stack.Screen
+        name="ScreenPemasokCreate"
+        component={ScreenPemasokCreate}
+      />
+      <Stack.Screen name="ScreenPemasokEdit" component={ScreenPemasokEdit} />
+    </Stack.Navigator>
+  );
+};

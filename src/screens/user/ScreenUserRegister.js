@@ -6,10 +6,8 @@ import WidgetBaseLogo from "../../widgets/base/WidgetBaseLogo";
 import { useState } from "react";
 import SchemaUser from "../../schema/SchemaUser";
 import { ServiceUserRegister } from "../../services/ServiceUser";
-import { useHookBasePreventPermission } from "../../hooks/HookBase";
 
 const ScreenUserRegister = ({ navigation }) => {
-  useHookBasePreventPermission({ navigation });
   const [user, setUser] = useState(SchemaUser);
 
   const handleChange = (name, value) => {

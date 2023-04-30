@@ -5,21 +5,28 @@ import {
 } from "@react-navigation/drawer";
 import { Image, SafeAreaView, StyleSheet, Text } from "react-native";
 import { Divider, Drawer } from "react-native-paper";
-import { useHookBaseIsAuthenticated } from "../../hooks/HookBase";
 
 const WidgetBaseSidebar = (props) => {
-  // const isAuthenticated = useHookBaseIsAuthenticated(props);
-
   const imageProfile =
-    "https://icons.iconarchive.com/icons/iconka/lucky-leprechaun/256/leprechaun-outline-icon.png";
+    "https://icons.iconarchive.com/icons/webalys/kameleon.pics/512/Man-6-icon.png";
   return (
     <SafeAreaView style={styles.safeAreaView}>
       <Image source={{ uri: imageProfile }} style={styles.imageProfile} />
-      <Text style={styles.title}>SISFO Purchasing</Text>
+      <Text style={styles.title}>Mobile SISFO Purchasing</Text>
       <Divider />
       <DrawerContentScrollView {...props}>
         <DrawerItemList {...props} />
       </DrawerContentScrollView>
+      <Divider />
+      <Text
+        style={{
+          fontSize: 10,
+          textAlign: "center",
+          color: "grey",
+          paddingVertical: 16,
+        }}>
+        StuvidLabs © {new Date().getFullYear()}
+      </Text>
     </SafeAreaView>
   );
 };
@@ -39,7 +46,7 @@ const styles = StyleSheet.create({
   },
   title: {
     textAlign: "center",
-    marginBottom: 20,
-    fontSize: 20,
+    marginVertical: 20,
+    fontSize: 16,
   },
 });
