@@ -8,10 +8,10 @@ import WidgetBaseCenter from "../../widgets/base/WidgetBaseCenter";
 import WidgetBaseLogo from "../../widgets/base/WidgetBaseLogo";
 import { ServiceBaseStoreToken } from "../../services/ServiceBase";
 import { ServiceUserLogin } from "../../services/ServiceUser";
-import { useHookBasePreventPermission } from "../../hooks/HookBase";
+import { ContextUserAuthentication } from "../../contexts/ContextUser";
 
 const ScreenUserLogin = ({ navigation }) => {
-  useHookBasePreventPermission({ navigation });
+  const [, setIsAuthenticated] = useContext(ContextUserAuthentication);
   const [user, setUser] = useState(SchemaUser);
 
   const handleChange = (name, value) => {
@@ -27,9 +27,13 @@ const ScreenUserLogin = ({ navigation }) => {
     ServiceUserLogin(payload)
       .then(async (token) => {
         await ServiceBaseStoreToken(token);
+        setIsAuthenticated(true);
+        navigation.navigate("RouterBarang", { screen: "ScreenBarangList" });
         Alert.alert("Berhasil", "Anda berhasil login");
       })
-      .catch(() => {});
+      .catch((error) => {
+        console.log(error);
+      });
   };
 
   return (

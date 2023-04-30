@@ -2,16 +2,16 @@ import { StatusBar } from "expo-status-bar";
 import { memo } from "react";
 import { ScrollView, StyleSheet } from "react-native";
 
-const WidgetBaseContainer = ({ children, style }) => {
+const WidgetBaseContainer = memo(({ children, style }) => {
   return (
     <ScrollView contentContainerStyle={[styles.container, style]}>
       <StatusBar barStyle="default" />
       {children}
     </ScrollView>
   );
-};
+});
 
-export default memo(WidgetBaseContainer);
+export default WidgetBaseContainer;
 
 const styles = StyleSheet.create({
   container: {

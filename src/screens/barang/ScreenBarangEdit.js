@@ -1,5 +1,4 @@
-import { useIsFocused } from "@react-navigation/native";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Appbar, Button, TextInput } from "react-native-paper";
 import WidgetBaseContainer from "../../widgets/base/WidgetBaseContainer";
 import WidgetBaseGroup from "../../widgets/base/WidgetBaseGroup";
@@ -7,10 +6,9 @@ import {
   ServiceBarangDelete,
   ServiceBarangEdit,
 } from "../../services/ServiceBarang";
-import { Alert, InteractionManager } from "react-native";
+import { Alert } from "react-native";
 import _ from "lodash";
 import WidgetBaseLoader from "../../widgets/base/WidgetBaseLoader";
-import { useFocusEffect } from "@react-navigation/native";
 
 function ScreenBarangEdit({ navigation, route }) {
   const [complete, setComplete] = useState(false);

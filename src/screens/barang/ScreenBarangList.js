@@ -1,14 +1,15 @@
 import _ from "lodash";
-import { memo, useCallback, useEffect, useMemo, useState } from "react";
-import { InteractionManager, View } from "react-native";
+import { memo, useCallback, useMemo, useState } from "react";
+import { View } from "react-native";
 import { Appbar, DataTable, Searchbar } from "react-native-paper";
 import { ServiceBarangList } from "../../services/ServiceBarang";
 import WidgetBaseFABCreate from "../../widgets/base/WidgetBaseFABCreate";
 import WidgetBaseLoader from "../../widgets/base/WidgetBaseLoader";
 import WidgetBaseContainer from "../../widgets/base/WidgetBaseContainer";
 import { useFocusEffect } from "@react-navigation/native";
+import { useHookUserAuthenticationRedirect } from "../../hooks/HookUser";
 
-function ScreenBarangList({ navigation }) {
+const ScreenBarangList = ({ navigation }) => {
   const [daftarBarang, setDaftarBarang] = useState([]);
   const [pagination, setPagination] = useState({});
   const [page, setPage] = useState(1);
@@ -23,13 +24,11 @@ function ScreenBarangList({ navigation }) {
         setPagination(pagination);
       })
       .catch(() => {});
-
-    return () => {};
   };
 
   useMemo(() => {
     handleServiceBarangList();
-    return () => {};
+    return "A/N";
   }, [terms, page]);
 
   useFocusEffect(
@@ -57,16 +56,16 @@ function ScreenBarangList({ navigation }) {
         />
         <Appbar.Action
           icon="arrow-left"
-          disabled={_.isNull(pagination.prev)}
+          disabled={_.isNull(pagination?.prev)}
           onPress={() => {
-            setPage(pagination.prev);
+            setPage(pagination?.prev);
           }}
         />
         <Appbar.Action
           icon="arrow-right"
-          disabled={_.isNull(pagination.next)}
+          disabled={_.isNull(pagination?.next)}
           onPress={() => {
-            setPage(pagination.next);
+            setPage(pagination?.next);
           }}
         />
       </Appbar.Header>
@@ -78,10 +77,9 @@ function ScreenBarangList({ navigation }) {
               placeholder="Search"
               value={terms || ""}
               onChangeText={(text) => {
-                if (page > 1) setPage(1);
+                page > 1 && setPage(1);
                 setTerms(text);
               }}
-              onSubmitEditing={handleServiceBarangList}
             />
             <DataTable>
               <DataTable.Header>
@@ -118,6 +116,6 @@ function ScreenBarangList({ navigation }) {
       />
     </>
   );
-}
+};
 
 export default memo(ScreenBarangList);

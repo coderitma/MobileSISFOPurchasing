@@ -1,7 +1,7 @@
 import { memo } from "react";
 import { MD3Colors, ProgressBar } from "react-native-paper";
 
-const WidgetBaseLoader = ({ complete }) => {
+const WidgetBaseLoader = memo(({ complete }) => {
   if (!complete) {
     return (
       <ProgressBar
@@ -13,6 +13,6 @@ const WidgetBaseLoader = ({ complete }) => {
   } else {
     return null;
   }
-};
+});
 
-export default memo(WidgetBaseLoader);
+export default WidgetBaseLoader;
