@@ -1,13 +1,11 @@
 import _ from "lodash";
-import { memo, useCallback, useMemo, useState } from "react";
+import { memo, useEffect, useState } from "react";
 import { View } from "react-native";
 import { Appbar, DataTable, Searchbar } from "react-native-paper";
 import { ServiceBarangList } from "../../services/ServiceBarang";
 import WidgetBaseFABCreate from "../../widgets/base/WidgetBaseFABCreate";
 import WidgetBaseLoader from "../../widgets/base/WidgetBaseLoader";
 import WidgetBaseContainer from "../../widgets/base/WidgetBaseContainer";
-import { useFocusEffect } from "@react-navigation/native";
-import { useHookUserAuthenticationRedirect } from "../../hooks/HookUser";
 
 const ScreenBarangList = ({ navigation }) => {
   const [daftarBarang, setDaftarBarang] = useState([]);
@@ -16,69 +14,73 @@ const ScreenBarangList = ({ navigation }) => {
   const [terms, setTerms] = useState("");
   const [complete, setComplete] = useState(false);
 
-  const handleServiceBarangList = () => {
-    setDaftarBarang([]);
-    ServiceBarangList(page, terms)
-      .then(({ results, pagination }) => {
-        setDaftarBarang(results);
-        setPagination(pagination);
-      })
-      .catch(() => {});
+  const handleServiceBarangList = (query) => {
+    setComplete(false);
+    setTimeout(() => {
+      if (query === "QUERY_EMPTY") {
+        ServiceBarangList()
+          .then(({ results, pagination }) => {
+            setDaftarBarang(results);
+            setPagination(pagination);
+          })
+          .catch(() => {})
+          .finally(() => setComplete(true));
+      } else {
+        ServiceBarangList(page, terms)
+          .then(({ results, pagination }) => {
+            setDaftarBarang(results);
+            setPagination(pagination);
+          })
+          .catch(() => {})
+          .finally(() => setComplete(true));
+      }
+    }, 100);
   };
 
-  useMemo(() => {
+  useEffect(() => {
     handleServiceBarangList();
-    return "A/N";
-  }, [terms, page]);
+  }, [page]);
 
-  useFocusEffect(
-    useCallback(() => {
-      const timer = setTimeout(() => {
-        handleServiceBarangList();
-        !complete && setComplete(true);
-      }, 1000);
-
-      return () => clearTimeout(timer);
-    }, [])
-  );
+  const handleRefresh = () => {
+    setTimeout(() => {
+      setPage(1);
+      setTerms("");
+      handleServiceBarangList("QUERY_EMPTY");
+    }, 100);
+  };
 
   return (
     <>
       <Appbar.Header>
         <Appbar.Action icon="menu" onPress={() => navigation.toggleDrawer()} />
         <Appbar.Content title="Barang" />
-        <Appbar.Action
-          icon="refresh"
-          onPress={() => {
-            setTerms("");
-            setPage(1);
-          }}
-        />
+        <Appbar.Action icon="refresh" onPress={handleRefresh} />
         <Appbar.Action
           icon="arrow-left"
-          disabled={_.isNull(pagination?.prev)}
+          disabled={pagination?.prev}
           onPress={() => {
-            setPage(pagination?.prev);
+            setTimeout(() => setPage(pagination?.prev), 100);
           }}
         />
         <Appbar.Action
           icon="arrow-right"
-          disabled={_.isNull(pagination?.next)}
+          disabled={pagination?.next}
           onPress={() => {
-            setPage(pagination?.next);
+            setTimeout(() => setPage(pagination?.next), 100);
           }}
         />
       </Appbar.Header>
-      <WidgetBaseLoader complete={complete} />
+
       <WidgetBaseContainer>
         {complete && (
           <View>
             <Searchbar
               placeholder="Search"
               value={terms || ""}
-              onChangeText={(text) => {
+              onChangeText={(text) => setTerms(text)}
+              onSubmitEditing={() => {
                 page > 1 && setPage(1);
-                setTerms(text);
+                handleServiceBarangList();
               }}
             />
             <DataTable>
@@ -88,9 +90,6 @@ const ScreenBarangList = ({ navigation }) => {
                 <DataTable.Title numeric>Harga Beli</DataTable.Title>
                 <DataTable.Title numeric>Harga Jual</DataTable.Title>
               </DataTable.Header>
-              {daftarBarang.length === 0 && (
-                <WidgetBaseLoader complete={false} />
-              )}
 
               {daftarBarang.map((barang, index) => (
                 <DataTable.Row
@@ -114,6 +113,7 @@ const ScreenBarangList = ({ navigation }) => {
       <WidgetBaseFABCreate
         action={() => navigation.navigate("ScreenBarangCreate")}
       />
+      <WidgetBaseLoader complete={complete} />
     </>
   );
 };

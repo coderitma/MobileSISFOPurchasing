@@ -1,5 +1,5 @@
 import "react-native-gesture-handler";
-import { LogBox, StyleSheet } from "react-native";
+import { LogBox } from "react-native";
 import WidgetBaseDrawer from "./src/widgets/base/WidgetBaseDrawer";
 
 LogBox.ignoreLogs([

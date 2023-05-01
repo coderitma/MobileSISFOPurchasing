@@ -10,6 +10,7 @@ import {
 import { useState } from "react";
 import { ContextUserAuthentication } from "../../contexts/ContextUser";
 import { useHookUserAuthenticationInterface } from "../../hooks/HookUser";
+import { RouterPembelianAuthenticated } from "../../routers/RouterPembelian";
 
 const Drawer = createDrawerNavigator();
 
@@ -42,6 +43,15 @@ const WidgetBaseDrawer = () => {
                 }}
                 name="RouterPemasok"
                 component={RouterPemasokAuthenticated}
+              />
+
+              <Drawer.Screen
+                options={{
+                  drawerLabel: "Pembelian",
+                  title: "Pembelian",
+                }}
+                name="RouterPembelian"
+                component={RouterPembelianAuthenticated}
               />
 
               <Drawer.Screen

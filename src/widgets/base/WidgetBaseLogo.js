@@ -1,5 +1,4 @@
-import { StyleSheet, View } from "react-native";
-import { Image } from "react-native";
+import { StyleSheet, View, Image } from "react-native";
 import { Text } from "react-native-paper";
 
 const WidgetBaseLogo = () => {
