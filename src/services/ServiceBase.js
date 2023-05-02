@@ -1,6 +1,8 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import { Alert } from "react-native";
+import * as FileSystem from "expo-file-system";
+import * as Sharing from "expo-sharing";
 
 export const ServiceBaseRequest = axios.create({
   timeout: 1000,
@@ -95,3 +97,22 @@ export default function ServiceBaseRandomID(prefix = "ID") {
   const date = new Date();
   return `${prefix.toUpperCase()}-${date.getTime()}`;
 }
+
+export const ServiceBaseDateToISO = (date) => {
+  return date.toISOString().substring(0, 10);
+};
+
+export const ServiceBaseFileSharing = (prefix, response) => {
+  const fr = new FileReader();
+
+  fr.onload = async () => {
+    const fileUri = `${
+      FileSystem.documentDirectory
+    }${prefix}_${new Date().getTime()}.xlsx`;
+    await FileSystem.writeAsStringAsync(fileUri, fr.result.split(",")[1], {
+      encoding: FileSystem.EncodingType.Base64,
+    });
+    Sharing.shareAsync(fileUri);
+  };
+  fr.readAsDataURL(response.data);
+};

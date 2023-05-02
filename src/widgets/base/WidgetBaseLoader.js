@@ -7,8 +7,7 @@ const WidgetBaseLoader = memo(({ complete }) => {
     return (
       <Modal
         animationType="fade"
-        // transparent={true}
-        style={{ backgroundColor: "black" }}
+        style={{ backgroundColor: "rgba(0, 0, 0, 0.2)" }}
         visible={!complete}>
         <View
           style={{
@@ -21,7 +20,7 @@ const WidgetBaseLoader = memo(({ complete }) => {
             animating={true}
             color={MD2Colors.blue200}
           />
-          <Text style={{ color: "white" }} variant="labelLarge">
+          <Text style={{ color: "white" }} variant="bodyLarge">
             Waiting moment...
           </Text>
         </View>

@@ -2,33 +2,37 @@ import _ from "lodash";
 import { memo, useEffect, useState } from "react";
 import { View } from "react-native";
 import { Appbar, DataTable, Searchbar } from "react-native-paper";
-import { ServiceBarangList } from "../../services/ServiceBarang";
+import { ServicePembelianList } from "../../services/ServicePembelian";
 import WidgetBaseFABCreate from "../../widgets/base/WidgetBaseFABCreate";
 import WidgetBaseLoader from "../../widgets/base/WidgetBaseLoader";
 import WidgetBaseContainer from "../../widgets/base/WidgetBaseContainer";
+import {
+  ServiceBaseHumanCurrency,
+  ServiceBaseHumanDate,
+} from "../../services/ServiceBase";
 
-const ScreenBarangList = ({ navigation }) => {
-  const [daftarBarang, setDaftarBarang] = useState([]);
+const ScreenPembelianList = memo(({ navigation }) => {
+  const [daftarPembelian, setDaftarPembelian] = useState([]);
   const [pagination, setPagination] = useState({});
   const [page, setPage] = useState(1);
   const [terms, setTerms] = useState("");
   const [complete, setComplete] = useState(false);
 
-  const handleServiceBarangList = (query) => {
+  const handleServicePembelianList = (query) => {
     setComplete(false);
     setTimeout(() => {
       if (query === "QUERY_EMPTY") {
-        ServiceBarangList()
+        ServicePembelianList()
           .then(({ results, pagination }) => {
-            setDaftarBarang(results);
+            setDaftarPembelian(results);
             setPagination(pagination);
           })
           .catch(() => {})
           .finally(() => setComplete(true));
       } else {
-        ServiceBarangList(page, terms)
+        ServicePembelianList(page, terms)
           .then(({ results, pagination }) => {
-            setDaftarBarang(results);
+            setDaftarPembelian(results);
             setPagination(pagination);
           })
           .catch(() => {})
@@ -38,22 +42,27 @@ const ScreenBarangList = ({ navigation }) => {
   };
 
   useEffect(() => {
-    handleServiceBarangList();
+    handleServicePembelianList();
   }, [page]);
 
   const handleRefresh = () => {
     setTimeout(() => {
       setPage(1);
       setTerms("");
-      handleServiceBarangList("QUERY_EMPTY");
+      handleServicePembelianList("QUERY_EMPTY");
     }, 100);
+  };
+
+  const openLaporan = () => {
+    navigation.navigate("ScreenPembelianReporting");
   };
 
   return (
     <>
       <Appbar.Header>
         <Appbar.Action icon="menu" onPress={() => navigation.toggleDrawer()} />
-        <Appbar.Content title="Barang" />
+        <Appbar.Content title="Pembelian" />
+        <Appbar.Action icon="file-table-outline" onPress={openLaporan} />
         <Appbar.Action icon="refresh" onPress={handleRefresh} />
         <Appbar.Action
           icon="arrow-left"
@@ -80,29 +89,35 @@ const ScreenBarangList = ({ navigation }) => {
               onChangeText={(text) => setTerms(text)}
               onSubmitEditing={() => {
                 page > 1 && setPage(1);
-                handleServiceBarangList();
+                handleServicePembelianList();
               }}
             />
             <DataTable>
               <DataTable.Header>
-                <DataTable.Title>Kode Barang</DataTable.Title>
-                <DataTable.Title>Nama Barang</DataTable.Title>
-                <DataTable.Title numeric>Harga Beli</DataTable.Title>
-                <DataTable.Title numeric>Harga Jual</DataTable.Title>
+                <DataTable.Title>Faktur</DataTable.Title>
+                <DataTable.Title>Tanggal</DataTable.Title>
+                <DataTable.Title>Supplier</DataTable.Title>
+                <DataTable.Title numeric>Total</DataTable.Title>
               </DataTable.Header>
 
-              {daftarBarang.map((barang, index) => (
+              {daftarPembelian.map((pembelian, index) => (
                 <DataTable.Row
                   key={index}
                   onPress={() => {
-                    navigation.navigate("ScreenBarangEdit", {
-                      barang,
+                    navigation.navigate("ScreenPembelianDetail", {
+                      faktur: pembelian.faktur,
                     });
                   }}>
-                  <DataTable.Cell>{barang.kodeBarang}</DataTable.Cell>
-                  <DataTable.Cell>{barang.namaBarang}</DataTable.Cell>
-                  <DataTable.Cell numeric>{barang.hargaBeli}</DataTable.Cell>
-                  <DataTable.Cell numeric>{barang.hargaJual}</DataTable.Cell>
+                  <DataTable.Cell>{pembelian.faktur}</DataTable.Cell>
+
+                  <DataTable.Cell>
+                    {ServiceBaseHumanDate(pembelian.tanggal)}
+                  </DataTable.Cell>
+
+                  <DataTable.Cell>{pembelian.kodePemasok}</DataTable.Cell>
+                  <DataTable.Cell numeric>
+                    {ServiceBaseHumanCurrency(pembelian.total)}
+                  </DataTable.Cell>
                 </DataTable.Row>
               ))}
             </DataTable>
@@ -111,11 +126,11 @@ const ScreenBarangList = ({ navigation }) => {
       </WidgetBaseContainer>
 
       <WidgetBaseFABCreate
-        action={() => navigation.navigate("ScreenBarangCreate")}
+        action={() => navigation.navigate("ScreenPembelianCreate")}
       />
       <WidgetBaseLoader complete={complete} />
     </>
   );
-};
+});
 
-export default memo(ScreenBarangList);
+export default ScreenPembelianList;

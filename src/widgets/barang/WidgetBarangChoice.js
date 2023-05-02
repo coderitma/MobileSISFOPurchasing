@@ -56,7 +56,7 @@ const WidgetBarangChoice = memo(({ onPress }) => {
         <Portal>
           <Modal
             animationType="fade"
-            style={{ backgroundColor: "rgba(0, 0, 0, 0.2)" }}
+            style={{ backgroundColor: "#ffffff" }}
             visible={visible}>
             <Appbar.Header>
               <Appbar.Action

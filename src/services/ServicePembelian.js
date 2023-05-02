@@ -43,10 +43,52 @@ export const ServicePembelianDetail = (faktur) => {
       },
     };
 
-    ServiceBaseRequest.get(`${CONFIG_BASE_API_URL}/pemasok/${faktur}`, config)
+    ServiceBaseRequest.get(`${CONFIG_BASE_API_URL}/pembelian/${faktur}`, config)
       .then((response) => {
         const { items, ...pembelian } = response.data;
         resolve({ pembelian, items });
+      })
+      .catch((error) => reject(error));
+  });
+};
+
+export const ServicePembelianPrint = (faktur) => {
+  return new Promise(async (resolve, reject) => {
+    const config = {
+      headers: {
+        "x-access-token": await ServiceBaseGetToken(),
+      },
+      responseType: "blob",
+    };
+
+    ServiceBaseRequest.post(
+      `${CONFIG_BASE_API_URL}/pembelian/${faktur}/faktur-excel`,
+      null,
+      config
+    )
+      .then((response) => {
+        resolve(response);
+      })
+      .catch((error) => reject(error));
+  });
+};
+
+export const ServicePembelianReport = (payload) => {
+  return new Promise(async (resolve, reject) => {
+    const config = {
+      headers: {
+        "x-access-token": await ServiceBaseGetToken(),
+      },
+      responseType: "blob",
+    };
+
+    ServiceBaseRequest.post(
+      `${CONFIG_BASE_API_URL}/pembelian/report-period-excel`,
+      payload,
+      config
+    )
+      .then((response) => {
+        resolve(response);
       })
       .catch((error) => reject(error));
   });

@@ -1,6 +1,6 @@
 import _ from "lodash";
 import { memo, useEffect, useMemo, useState } from "react";
-import { View } from "react-native";
+import { Alert, View } from "react-native";
 import {
   Appbar,
   DataTable,
@@ -13,6 +13,7 @@ import WidgetBaseLoader from "../../widgets/base/WidgetBaseLoader";
 import WidgetBaseContainer from "../../widgets/base/WidgetBaseContainer";
 import ServiceBaseRandomID, {
   ServiceBaseActivity,
+  ServiceBaseFileSharing,
   ServiceBaseHumanCurrency,
   ServiceBaseHumanDate,
   ServiceBaseIsDuplicateArray,
@@ -23,7 +24,10 @@ import SchemaPemasok from "../../schema/SchemaPemasok";
 import WidgetBaseGroup from "../../widgets/base/WidgetBaseGroup";
 import SchemaPembelian from "../../schema/SchemaPembelian";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import { ServicePembelianCreate } from "../../services/ServicePembelian";
+import {
+  ServicePembelianCreate,
+  ServicePembelianPrint,
+} from "../../services/ServicePembelian";
 
 const ScreenPembelianCreate = memo(({ navigation }) => {
   const [pembelian, setPembelian] = useState(SchemaPembelian);
@@ -139,9 +143,36 @@ const ScreenPembelianCreate = memo(({ navigation }) => {
 
     ServicePembelianCreate(payload)
       .then((data) => {
-        console.log(data);
+        const actions = [
+          {
+            text: "Ya",
+            onPress: () => {
+              ServicePembelianPrint(data.faktur)
+                .then(async (blob) => {
+                  try {
+                    await ServiceBaseFileSharing("FAKTUR", blob);
+                    navigation.goBack();
+                  } catch (error) {
+                    console.log(error);
+                  }
+                })
+                .catch((error) => {
+                  console.log(error);
+                });
+            },
+          },
+          {
+            text: "Kembali",
+            onPress: () => navigation.goBack(),
+            style: "cancel",
+          },
+        ];
+
+        Alert.alert("Cetak Faktur?", null, actions);
       })
-      .catch(() => {})
+      .catch((error) => {
+        console.log(error);
+      })
       .finally(() => setComplete(true));
   };
 
@@ -154,7 +185,7 @@ const ScreenPembelianCreate = memo(({ navigation }) => {
             navigation.goBack();
           }}
         />
-        <Appbar.Content title="Pilih Item" />
+        <Appbar.Content title="Buat Transaksi Pembelian" />
         <Appbar.Action
           icon="trash-can-outline"
           onPress={() => {

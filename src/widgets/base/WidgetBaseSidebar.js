@@ -1,6 +1,5 @@
 import {
   DrawerContentScrollView,
-  DrawerItem,
   DrawerItemList,
 } from "@react-navigation/drawer";
 import { Image, SafeAreaView, StyleSheet, Text } from "react-native";
