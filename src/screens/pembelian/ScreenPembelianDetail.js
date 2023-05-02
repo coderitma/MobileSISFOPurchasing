@@ -31,7 +31,7 @@ const ScreenPembelianDetail = memo(({ navigation, route }) => {
       .finally(() => setComplete(true));
   }, []);
 
-  const handleServicePembelianShare = () => {
+  const share = () => {
     const actions = [
       {
         text: "Ya",
@@ -60,70 +60,68 @@ const ScreenPembelianDetail = memo(({ navigation, route }) => {
     Alert.alert("Cetak Faktur?", null, actions);
   };
 
-  if (complete) {
-    return (
-      <>
-        <Appbar.Header>
-          <Appbar.BackAction onPress={() => navigation.goBack()} />
-          <Appbar.Content title="Detail Pembelian" />
-          <Appbar.Action
-            icon="share-variant-outline"
-            onPress={() => handleServicePembelianShare()}
-          />
-        </Appbar.Header>
-        <List.Section>
-          <List.Subheader>Pembelian</List.Subheader>
-          <List.Item title={pembelian.faktur} />
-          <Divider />
-          <List.Item title={ServiceBaseHumanDate(pembelian.tanggal)} />
-          <Divider />
-          <List.Item title={pembelian.kodePemasok} />
-          <Divider />
-        </List.Section>
-        <List.Section>
-          <List.Subheader>Daftar Item</List.Subheader>
-          {daftarItemBeli.map((item, index) => (
-            <View key={index}>
-              <List.Item
-                title={item.namaBarang}
-                right={() => {
-                  return <Text>{ServiceBaseHumanCurrency(item.subtotal)}</Text>;
-                }}
-              />
-              <Divider />
-            </View>
-          ))}
-        </List.Section>
-        <List.Section>
-          <List.Subheader>Pembayaran</List.Subheader>
-          <List.Item
-            title="Total"
-            right={() => (
-              <Text>{ServiceBaseHumanCurrency(pembelian.total)}</Text>
-            )}
-          />
-          <Divider />
-          <List.Item
-            title="Dibayar"
-            right={() => (
-              <Text>{ServiceBaseHumanCurrency(pembelian.dibayar)}</Text>
-            )}
-          />
-          <Divider />
-          <List.Item
-            title="Kembali"
-            right={() => (
-              <Text>{ServiceBaseHumanCurrency(pembelian.kembali)}</Text>
-            )}
-          />
-          <Divider />
-        </List.Section>
-        {/* <WidgetBaseContainer></WidgetBaseContainer> */}
-      </>
-    );
-  } else {
-    return <WidgetBaseLoader complete={false} />;
-  }
+  return (
+    <>
+      <Appbar.Header>
+        <Appbar.BackAction onPress={() => navigation.goBack()} />
+        <Appbar.Content title="Detail Pembelian" />
+        <Appbar.Action icon="share-variant-outline" onPress={() => share()} />
+      </Appbar.Header>
+      {complete && (
+        <>
+          <List.Section>
+            <List.Subheader>Pembelian</List.Subheader>
+            <List.Item title={pembelian.faktur} />
+            <Divider />
+            <List.Item title={ServiceBaseHumanDate(pembelian.tanggal)} />
+            <Divider />
+            <List.Item title={pembelian.kodePemasok} />
+            <Divider />
+          </List.Section>
+          <List.Section>
+            <List.Subheader>Daftar Item</List.Subheader>
+            {daftarItemBeli.map((item, index) => (
+              <View key={index}>
+                <List.Item
+                  title={item.namaBarang}
+                  right={() => {
+                    return (
+                      <Text>{ServiceBaseHumanCurrency(item.subtotal)}</Text>
+                    );
+                  }}
+                />
+                <Divider />
+              </View>
+            ))}
+          </List.Section>
+          <List.Section>
+            <List.Subheader>Pembayaran</List.Subheader>
+            <List.Item
+              title="Total"
+              right={() => (
+                <Text>{ServiceBaseHumanCurrency(pembelian.total)}</Text>
+              )}
+            />
+            <Divider />
+            <List.Item
+              title="Dibayar"
+              right={() => (
+                <Text>{ServiceBaseHumanCurrency(pembelian.dibayar)}</Text>
+              )}
+            />
+            <Divider />
+            <List.Item
+              title="Kembali"
+              right={() => (
+                <Text>{ServiceBaseHumanCurrency(pembelian.kembali)}</Text>
+              )}
+            />
+            <Divider />
+          </List.Section>
+        </>
+      )}
+    </>
+  );
 });
 
 export default ScreenPembelianDetail;

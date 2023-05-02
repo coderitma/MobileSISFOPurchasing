@@ -34,7 +34,7 @@ export const ServicePemasokCreate = (payload) => {
   });
 };
 
-export const ServicePemasokEdit = (kodePemasok, payload) => {
+export const ServicePemasokEdit = (payload) => {
   return new Promise(async (resolve, reject) => {
     const config = {
       headers: {
@@ -43,7 +43,7 @@ export const ServicePemasokEdit = (kodePemasok, payload) => {
     };
 
     ServiceBaseRequest.put(
-      `${CONFIG_BASE_API_URL}/pemasok/${kodePemasok}`,
+      `${CONFIG_BASE_API_URL}/pemasok/${payload.kodePemasok}`,
       payload,
       config
     )

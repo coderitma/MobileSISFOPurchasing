@@ -1,47 +1,47 @@
 import { useEffect, useState } from "react";
+import { Appbar, Button, TextInput } from "react-native-paper";
+import WidgetBaseContainer from "../../widgets/base/WidgetBaseContainer";
+import WidgetBaseGroup from "../../widgets/base/WidgetBaseGroup";
 import {
   ServicePemasokDelete,
   ServicePemasokEdit,
 } from "../../services/ServicePemasok";
 import { Alert } from "react-native";
-import { Appbar, Button, TextInput } from "react-native-paper";
+import _ from "lodash";
 import WidgetBaseLoader from "../../widgets/base/WidgetBaseLoader";
-import WidgetBaseContainer from "../../widgets/base/WidgetBaseContainer";
-import WidgetBaseGroup from "../../widgets/base/WidgetBaseGroup";
 
-const ScreenPemasokEdit = ({ navigation, route }) => {
+function ScreenPemasokEdit({ navigation, route }) {
   const [complete, setComplete] = useState(false);
   const [pemasok, setPemasok] = useState({});
-
-  const handleChange = (name, value) => {
-    setPemasok((values) => ({ ...values, [name]: value }));
-  };
 
   useEffect(() => {
     const time = setTimeout(() => {
       setPemasok(route.params.pemasok);
       setComplete(true);
+      clearTimeout(time);
     }, 1000);
-
-    return () => clearTimeout(time);
   }, [route.params.pemasok]);
 
-  const handleServicePemasokEdit = () => {
-    ServicePemasokEdit(pemasok.kodePemasok, pemasok)
-      .then((response) => {
+  const handleChange = (name, value) => {
+    setPemasok((values) => ({ ...values, [name]: value }));
+  };
+
+  const edit = () => {
+    ServicePemasokEdit(pemasok)
+      .then(() => {
         navigation.goBack();
       })
       .catch(() => {});
   };
 
-  const handleServicePemasokDelete = () => {
+  const remove = () => {
     Alert.alert("Konfirmasi", "Yakin ingin menghapus?", [
       {
-        text: "Yakin",
+        text: "Ya",
         onPress: () => {
           ServicePemasokDelete(pemasok.kodePemasok)
             .then(() => {
-              Alert.alert("Berhasil", "Barang berhasil dihapus!");
+              Alert.alert("Berhasil", "Pemasok berhasil dihapus!");
               navigation.goBack();
             })
             .catch(() => {});
@@ -57,18 +57,11 @@ const ScreenPemasokEdit = ({ navigation, route }) => {
   return (
     <>
       <Appbar.Header>
-        <Appbar.BackAction
-          disabled={!complete}
-          onPress={() => navigation.goBack()}
-        />
+        <Appbar.BackAction onPress={() => navigation.goBack()} />
         <Appbar.Content title="Edit Pemasok" />
-        <Appbar.Action
-          disabled={!complete}
-          icon="trash-can-outline"
-          onPress={handleServicePemasokDelete}
-        />
+        <Appbar.Action icon="trash-can-outline" onPress={remove} />
       </Appbar.Header>
-      <WidgetBaseLoader complete={complete} />
+
       {complete && (
         <WidgetBaseContainer>
           <WidgetBaseGroup>
@@ -77,9 +70,7 @@ const ScreenPemasokEdit = ({ navigation, route }) => {
               onChangeText={(text) => handleChange("kodePemasok", text)}
               mode="outlined"
               label="Kode Pemasok"
-              disabled
             />
-
             <TextInput
               value={pemasok.namaPemasok || ""}
               onChangeText={(text) => handleChange("namaPemasok", text)}
@@ -88,28 +79,30 @@ const ScreenPemasokEdit = ({ navigation, route }) => {
             />
 
             <TextInput
-              value={pemasok.teleponPemasok || ""}
-              onChangeText={(text) => handleChange("teleponPemasok", text)}
-              mode="outlined"
-              label="Telepon Pemasok"
-            />
-
-            <TextInput
-              value={pemasok.alamatPemasok || ""}
+              value={`${pemasok.alamatPemasok || ""}`}
               onChangeText={(text) => handleChange("alamatPemasok", text)}
               mode="outlined"
               label="Alamat Pemasok"
             />
+
+            <TextInput
+              value={`${pemasok.teleponPemasok || ""}`}
+              onChangeText={(text) => handleChange("teleponPemasok", text)}
+              mode="outlined"
+              label="Telepon Pemasok"
+            />
           </WidgetBaseGroup>
           <WidgetBaseGroup>
-            <Button onPress={handleServicePemasokEdit} mode="contained">
+            <Button onPress={edit} mode="contained">
               Simpan Perubahan
             </Button>
           </WidgetBaseGroup>
         </WidgetBaseContainer>
       )}
+
+      <WidgetBaseLoader complete={complete} />
     </>
   );
-};
+}
 
 export default ScreenPemasokEdit;

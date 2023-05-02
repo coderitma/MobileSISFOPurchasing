@@ -20,7 +20,9 @@ const ScreenPembelianReporting = memo(({ navigation }) => {
   });
 
   useEffect(() => {
-    setComplete(true);
+    setComplete(false);
+
+    setTimeout(() => setComplete(true), 1000);
   }, []);
 
   const send = () => {
@@ -42,76 +44,77 @@ const ScreenPembelianReporting = memo(({ navigation }) => {
       })
       .catch((error) => {
         console.log(error);
-        setComplete(true);
-      });
+      })
+      .finally(() => setComplete(true));
   };
 
-  if (complete) {
-    return (
-      <>
-        <Appbar.Header>
-          <Appbar.BackAction onPress={() => navigation.goBack()} />
-          <Appbar.Content title="Laporan Pembelian" />
-        </Appbar.Header>
-        <WidgetBaseContainer>
-          <TextInput
-            label="Tanggal Awal"
-            mode="outlined"
-            editable={false}
-            right={
-              <TextInput.Icon
-                icon="calendar"
-                onPress={() => setOpenStartDate(true)}
-              />
-            }
-            value={`${ServiceBaseHumanDate(reportPayload.startDate)}`}
-          />
-          <TextInput
-            label="Tanggal Akhir"
-            mode="outlined"
-            right={
-              <TextInput.Icon
-                icon="calendar"
-                onPress={() => setOpenEndDate(true)}
-              />
-            }
-            value={`${ServiceBaseHumanDate(reportPayload.endDate)}`}
-          />
+  return (
+    <>
+      <Appbar.Header>
+        <Appbar.BackAction onPress={() => navigation.goBack()} />
+        <Appbar.Content title="Laporan Pembelian" />
+      </Appbar.Header>
+      {complete && (
+        <>
+          <WidgetBaseContainer>
+            <TextInput
+              label="Tanggal Awal"
+              mode="outlined"
+              editable={false}
+              right={
+                <TextInput.Icon
+                  icon="calendar"
+                  onPress={() => setOpenStartDate(true)}
+                />
+              }
+              value={`${ServiceBaseHumanDate(reportPayload.startDate)}`}
+            />
+            <TextInput
+              label="Tanggal Akhir"
+              mode="outlined"
+              right={
+                <TextInput.Icon
+                  icon="calendar"
+                  onPress={() => setOpenEndDate(true)}
+                />
+              }
+              value={`${ServiceBaseHumanDate(reportPayload.endDate)}`}
+            />
 
-          <Button mode="contained" onPress={send}>
-            Kirim
-          </Button>
-        </WidgetBaseContainer>
+            <Button mode="contained" onPress={send}>
+              Kirim
+            </Button>
+          </WidgetBaseContainer>
 
-        {openStartDate && (
-          <DateTimePicker
-            value={new Date()}
-            mode={"date"}
-            display={Platform.OS === "ios" ? "spinner" : "default"}
-            is24Hour={true}
-            onChange={(event, value) => {
-              setOpenStartDate(false);
-              setReportPayload((values) => ({ ...values, startDate: value }));
-            }}
-          />
-        )}
-        {openEndDate && (
-          <DateTimePicker
-            value={new Date()}
-            mode={"date"}
-            display={Platform.OS === "ios" ? "spinner" : "default"}
-            is24Hour={true}
-            onChange={(event, value) => {
-              setOpenEndDate(false);
-              setReportPayload((values) => ({ ...values, endDate: value }));
-            }}
-          />
-        )}
-      </>
-    );
-  } else {
-    return <WidgetBaseLoader complete={false} />;
-  }
+          {openStartDate && (
+            <DateTimePicker
+              value={new Date()}
+              mode={"date"}
+              display={Platform.OS === "ios" ? "spinner" : "default"}
+              is24Hour={true}
+              onChange={(event, value) => {
+                setOpenStartDate(false);
+                setReportPayload((values) => ({ ...values, startDate: value }));
+              }}
+            />
+          )}
+          {openEndDate && (
+            <DateTimePicker
+              value={new Date()}
+              mode={"date"}
+              display={Platform.OS === "ios" ? "spinner" : "default"}
+              is24Hour={true}
+              onChange={(event, value) => {
+                setOpenEndDate(false);
+                setReportPayload((values) => ({ ...values, endDate: value }));
+              }}
+            />
+          )}
+        </>
+      )}
+      <WidgetBaseLoader complete={complete} />
+    </>
+  );
 });
 
 export default ScreenPembelianReporting;

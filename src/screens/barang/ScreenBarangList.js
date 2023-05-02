@@ -8,45 +8,47 @@ import WidgetBaseLoader from "../../widgets/base/WidgetBaseLoader";
 import WidgetBaseContainer from "../../widgets/base/WidgetBaseContainer";
 
 const ScreenBarangList = ({ navigation }) => {
+  const [terms, setTerms] = useState();
+  const [page, setPage] = useState();
+  const [complete, setComplete] = useState(false);
   const [daftarBarang, setDaftarBarang] = useState([]);
   const [pagination, setPagination] = useState({});
-  const [page, setPage] = useState(1);
-  const [terms, setTerms] = useState("");
-  const [complete, setComplete] = useState(false);
 
-  const handleServiceBarangList = (query) => {
+  const getAll = () => {
     setComplete(false);
-    setTimeout(() => {
-      if (query === "QUERY_EMPTY") {
-        ServiceBarangList()
-          .then(({ results, pagination }) => {
-            setDaftarBarang(results);
-            setPagination(pagination);
-          })
-          .catch(() => {})
-          .finally(() => setComplete(true));
-      } else {
-        ServiceBarangList(page, terms)
-          .then(({ results, pagination }) => {
-            setDaftarBarang(results);
-            setPagination(pagination);
-          })
-          .catch(() => {})
-          .finally(() => setComplete(true));
-      }
-    }, 100);
+    ServiceBarangList(page, terms)
+      .then(({ results, pagination }) => {
+        setDaftarBarang(results);
+        setPagination(pagination);
+      })
+      .catch((error) => {
+        console.log(error);
+      })
+      .finally(() => setComplete(true));
   };
 
   useEffect(() => {
-    handleServiceBarangList();
+    getAll();
   }, [page]);
 
-  const handleRefresh = () => {
-    setTimeout(() => {
-      setPage(1);
-      setTerms("");
-      handleServiceBarangList("QUERY_EMPTY");
-    }, 100);
+  const search = () => {
+    setPage(1);
+    getAll();
+  };
+
+  const reload = () => {
+    setTerms("");
+    setPage(1);
+    setComplete(false);
+    ServiceBarangList(1, null)
+      .then(({ results, pagination }) => {
+        setDaftarBarang(results);
+        setPagination(pagination);
+      })
+      .catch((error) => {
+        console.log(error);
+      })
+      .finally(() => setComplete(true));
   };
 
   return (
@@ -54,20 +56,16 @@ const ScreenBarangList = ({ navigation }) => {
       <Appbar.Header>
         <Appbar.Action icon="menu" onPress={() => navigation.toggleDrawer()} />
         <Appbar.Content title="Barang" />
-        <Appbar.Action icon="refresh" onPress={handleRefresh} />
+        <Appbar.Action icon="refresh" onPress={reload} />
         <Appbar.Action
           icon="arrow-left"
           disabled={_.isNull(pagination?.prev)}
-          onPress={() => {
-            setTimeout(() => setPage(pagination?.prev), 100);
-          }}
+          onPress={() => setPage(pagination?.prev)}
         />
         <Appbar.Action
           icon="arrow-right"
           disabled={_.isNull(pagination?.next)}
-          onPress={() => {
-            setTimeout(() => setPage(pagination?.next), 100);
-          }}
+          onPress={() => setPage(pagination?.next)}
         />
       </Appbar.Header>
 
@@ -76,12 +74,9 @@ const ScreenBarangList = ({ navigation }) => {
           <View>
             <Searchbar
               placeholder="Search"
-              value={terms || ""}
+              value={terms}
               onChangeText={(text) => setTerms(text)}
-              onSubmitEditing={() => {
-                page > 1 && setPage(1);
-                handleServiceBarangList();
-              }}
+              onSubmitEditing={search}
             />
             <DataTable>
               <DataTable.Header>

@@ -1,29 +1,28 @@
-import { useCallback, useState } from "react";
-import SchemaPemasok from "../../schema/SchemaPemasok";
-import { useFocusEffect } from "@react-navigation/native";
+import { memo, useEffect, useState } from "react";
 import { ServicePemasokCreate } from "../../services/ServicePemasok";
-import { Appbar, Button, TextInput } from "react-native-paper";
-import WidgetBaseLoader from "../../widgets/base/WidgetBaseLoader";
 import WidgetBaseContainer from "../../widgets/base/WidgetBaseContainer";
+import { Appbar, Button, TextInput } from "react-native-paper";
 import WidgetBaseGroup from "../../widgets/base/WidgetBaseGroup";
+import SchemaPemasok from "../../schema/SchemaPemasok";
+import WidgetBaseLoader from "../../widgets/base/WidgetBaseLoader";
 
-const ScreenPemasokCreate = ({ navigation, route }) => {
+function ScreenPemasokCreate({ navigation }) {
   const [pemasok, setPemasok] = useState(SchemaPemasok);
   const [complete, setComplete] = useState(false);
 
-  useFocusEffect(
-    useCallback(() => {
-      const time = setTimeout(() => {
-        setComplete(true);
-      }, 1000);
-    }, [])
-  );
+  useEffect(() => {
+    setComplete(false);
+    const timeout = setTimeout(() => {
+      setComplete(true);
+      clearTimeout(timeout);
+    }, 1000);
+  }, []);
 
   const handleChange = (name, value) => {
     setPemasok((values) => ({ ...values, [name]: value }));
   };
 
-  const handleServicePemasokCreate = () => {
+  const create = () => {
     ServicePemasokCreate(pemasok)
       .then(() => {
         navigation.goBack();
@@ -34,13 +33,10 @@ const ScreenPemasokCreate = ({ navigation, route }) => {
   return (
     <>
       <Appbar.Header>
-        <Appbar.BackAction
-          disabled={!complete}
-          onPress={() => navigation.goBack()}
-        />
+        <Appbar.BackAction onPress={() => navigation.goBack()} />
         <Appbar.Content title="Tambah Pemasok" />
       </Appbar.Header>
-      <WidgetBaseLoader complete={complete} />
+
       {complete && (
         <WidgetBaseContainer>
           <WidgetBaseGroup>
@@ -56,31 +52,31 @@ const ScreenPemasokCreate = ({ navigation, route }) => {
               mode="outlined"
               label="Nama Pemasok"
             />
+
             <TextInput
-              value={pemasok.teleponPemasok || ""}
-              onChangeText={(text) => handleChange("teleponPemasok", text)}
-              mode="outlined"
-              label="Telepon Pemasok"
-            />
-            <TextInput
-              value={pemasok.alamatPemasok || ""}
+              value={`${pemasok.alamatPemasok || ""}`}
               onChangeText={(text) => handleChange("alamatPemasok", text)}
               mode="outlined"
               label="Alamat Pemasok"
             />
+
+            <TextInput
+              value={`${pemasok.teleponPemasok || ""}`}
+              onChangeText={(text) => handleChange("teleponPemasok", text)}
+              mode="outlined"
+              label="Telepon Pemasok"
+            />
           </WidgetBaseGroup>
           <WidgetBaseGroup>
-            <Button
-              compact={false}
-              onPress={handleServicePemasokCreate}
-              mode="contained">
+            <Button onPress={create} mode="contained">
               Simpan
             </Button>
           </WidgetBaseGroup>
         </WidgetBaseContainer>
       )}
+      <WidgetBaseLoader complete={complete} />
     </>
   );
-};
+}
 
-export default ScreenPemasokCreate;
+export default memo(ScreenPemasokCreate);

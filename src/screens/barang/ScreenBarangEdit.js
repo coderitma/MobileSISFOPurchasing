@@ -14,38 +14,30 @@ function ScreenBarangEdit({ navigation, route }) {
   const [complete, setComplete] = useState(false);
   const [barang, setBarang] = useState({});
 
-  const handleChange = (name, value) => {
-    setBarang((values) => ({ ...values, [name]: value }));
-  };
-
   useEffect(() => {
     const time = setTimeout(() => {
       setBarang(route.params.barang);
       setComplete(true);
+      clearTimeout(time);
     }, 1000);
-
-    return () => clearTimeout(time);
   }, [route.params.barang]);
 
-  const handleServiceBarangEdit = () => {
-    const payload = {
-      namaBarang: barang.namaBarang,
-      hargaBeli: parseInt(barang.hargaBeli),
-      hargaJual: parseInt(barang.hargaJual),
-      jumlahBarang: parseInt(barang.jumlahBarang),
-    };
+  const handleChange = (name, value) => {
+    setBarang((values) => ({ ...values, [name]: value }));
+  };
 
-    ServiceBarangEdit(barang.kodeBarang, payload)
+  const edit = () => {
+    ServiceBarangEdit(barang)
       .then(() => {
         navigation.goBack();
       })
       .catch(() => {});
   };
 
-  const handleServiceBarangDelete = () => {
+  const remove = () => {
     Alert.alert("Konfirmasi", "Yakin ingin menghapus?", [
       {
-        text: "Yakin",
+        text: "Ya",
         onPress: () => {
           ServiceBarangDelete(barang.kodeBarang)
             .then(() => {
@@ -65,18 +57,11 @@ function ScreenBarangEdit({ navigation, route }) {
   return (
     <>
       <Appbar.Header>
-        <Appbar.BackAction
-          disabled={!complete}
-          onPress={() => navigation.goBack()}
-        />
+        <Appbar.BackAction onPress={() => navigation.goBack()} />
         <Appbar.Content title="Edit Barang" />
-        <Appbar.Action
-          disabled={!complete}
-          icon="trash-can-outline"
-          onPress={handleServiceBarangDelete}
-        />
+        <Appbar.Action icon="trash-can-outline" onPress={remove} />
       </Appbar.Header>
-      <WidgetBaseLoader complete={complete} />
+
       {complete && (
         <WidgetBaseContainer>
           <WidgetBaseGroup>
@@ -122,12 +107,14 @@ function ScreenBarangEdit({ navigation, route }) {
             />
           </WidgetBaseGroup>
           <WidgetBaseGroup>
-            <Button onPress={handleServiceBarangEdit} mode="contained">
+            <Button onPress={edit} mode="contained">
               Simpan Perubahan
             </Button>
           </WidgetBaseGroup>
         </WidgetBaseContainer>
       )}
+
+      <WidgetBaseLoader complete={complete} />
     </>
   );
 }

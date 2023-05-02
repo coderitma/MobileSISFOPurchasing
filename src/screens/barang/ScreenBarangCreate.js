@@ -1,39 +1,29 @@
-import { memo, useCallback, useState } from "react";
+import { memo, useEffect, useState } from "react";
 import { ServiceBarangCreate } from "../../services/ServiceBarang";
 import WidgetBaseContainer from "../../widgets/base/WidgetBaseContainer";
 import { Appbar, Button, TextInput } from "react-native-paper";
 import WidgetBaseGroup from "../../widgets/base/WidgetBaseGroup";
 import SchemaBarang from "../../schema/SchemaBarang";
 import WidgetBaseLoader from "../../widgets/base/WidgetBaseLoader";
-import { useFocusEffect } from "@react-navigation/native";
 
-function ScreenBarangCreate({ navigation, route }) {
+function ScreenBarangCreate({ navigation }) {
   const [barang, setBarang] = useState(SchemaBarang);
   const [complete, setComplete] = useState(false);
 
-  useFocusEffect(
-    useCallback(() => {
-      const time = setTimeout(() => {
-        setComplete(true);
-      }, 1000);
-      return () => clearTimeout(time);
-    }, [])
-  );
+  useEffect(() => {
+    setComplete(false);
+    const timeout = setTimeout(() => {
+      setComplete(true);
+      clearTimeout(timeout);
+    }, 1000);
+  }, []);
 
   const handleChange = (name, value) => {
     setBarang((values) => ({ ...values, [name]: value }));
   };
 
-  const handleServiceBarangCreate = () => {
-    const payload = {
-      kodeBarang: barang.kodeBarang,
-      namaBarang: barang.namaBarang,
-      hargaBeli: parseInt(barang.hargaBeli),
-      hargaJual: parseInt(barang.hargaJual),
-      jumlahBarang: parseInt(barang.jumlahBarang),
-    };
-
-    ServiceBarangCreate(payload)
+  const create = () => {
+    ServiceBarangCreate(barang)
       .then(() => {
         navigation.goBack();
       })
@@ -43,13 +33,10 @@ function ScreenBarangCreate({ navigation, route }) {
   return (
     <>
       <Appbar.Header>
-        <Appbar.BackAction
-          disabled={!complete}
-          onPress={() => navigation.goBack()}
-        />
+        <Appbar.BackAction onPress={() => navigation.goBack()} />
         <Appbar.Content title="Tambah Barang" />
       </Appbar.Header>
-      <WidgetBaseLoader complete={complete} />
+
       {complete && (
         <WidgetBaseContainer>
           <WidgetBaseGroup>
@@ -96,12 +83,13 @@ function ScreenBarangCreate({ navigation, route }) {
             />
           </WidgetBaseGroup>
           <WidgetBaseGroup>
-            <Button onPress={handleServiceBarangCreate} mode="contained">
+            <Button onPress={create} mode="contained">
               Simpan
             </Button>
           </WidgetBaseGroup>
         </WidgetBaseContainer>
       )}
+      <WidgetBaseLoader complete={complete} />
     </>
   );
 }

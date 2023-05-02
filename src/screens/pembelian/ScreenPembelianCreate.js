@@ -65,7 +65,6 @@ const ScreenPembelianCreate = memo(({ navigation }) => {
   };
 
   const updateItem = (item) => {
-    // setComplete(false);
     setTimeout(() => {
       setDaftarItemBeli((values) => {
         const items = [...values];
@@ -76,14 +75,12 @@ const ScreenPembelianCreate = memo(({ navigation }) => {
         b.jumlahBeli = b.jumlahBeli + 1;
         b.subtotal = b.jumlahBeli * b.hargaBeli;
         items[i] = b;
-        // setComplete(true);
         return items;
       });
     }, 100);
   };
 
   const addItem = (item) => {
-    // setComplete(false);
     setTimeout(() => {
       const payload = {
         kodeBarang: item.kodeBarang,
@@ -94,7 +91,6 @@ const ScreenPembelianCreate = memo(({ navigation }) => {
       };
 
       setDaftarItemBeli((values) => [...values, payload]);
-      // setComplete(true);
     }, 100);
   };
 
@@ -131,7 +127,37 @@ const ScreenPembelianCreate = memo(({ navigation }) => {
     return kembalian;
   }, [daftarItemBeli, pembelian.dibayar]);
 
-  const handleServicePembelianCreate = () => {
+  const share = (faktur) => {
+    const actions = [
+      {
+        text: "Ya",
+        onPress: () => {
+          ServicePembelianPrint(faktur)
+            .then(async (blob) => {
+              try {
+                await ServiceBaseFileSharing("FAKTUR", blob);
+                clear();
+                navigation.goBack();
+              } catch (error) {
+                console.log(error);
+              }
+            })
+            .catch((error) => {
+              console.log(error);
+            });
+        },
+      },
+      {
+        text: "Kembali",
+        onPress: () => navigation.goBack(),
+        style: "cancel",
+      },
+    ];
+
+    Alert.alert("Cetak Faktur?", null, actions);
+  };
+
+  const create = () => {
     pembelian.kodePemasok = pemasok.kodePemasok;
 
     const payload = {
@@ -143,37 +169,19 @@ const ScreenPembelianCreate = memo(({ navigation }) => {
 
     ServicePembelianCreate(payload)
       .then((data) => {
-        const actions = [
-          {
-            text: "Ya",
-            onPress: () => {
-              ServicePembelianPrint(data.faktur)
-                .then(async (blob) => {
-                  try {
-                    await ServiceBaseFileSharing("FAKTUR", blob);
-                    navigation.goBack();
-                  } catch (error) {
-                    console.log(error);
-                  }
-                })
-                .catch((error) => {
-                  console.log(error);
-                });
-            },
-          },
-          {
-            text: "Kembali",
-            onPress: () => navigation.goBack(),
-            style: "cancel",
-          },
-        ];
-
-        Alert.alert("Cetak Faktur?", null, actions);
+        share(data.faktur);
       })
       .catch((error) => {
         console.log(error);
       })
       .finally(() => setComplete(true));
+  };
+
+  const clear = () => {
+    setDaftarItemBeli([]);
+    setPemasok(SchemaPemasok);
+    setComplete(true);
+    setPembelian(SchemaPembelian);
   };
 
   return (
@@ -186,17 +194,7 @@ const ScreenPembelianCreate = memo(({ navigation }) => {
           }}
         />
         <Appbar.Content title="Buat Transaksi Pembelian" />
-        <Appbar.Action
-          icon="trash-can-outline"
-          onPress={() => {
-            setComplete(false);
-            ServiceBaseActivity(() => {
-              setDaftarItemBeli([]);
-              setPemasok(SchemaPemasok);
-              setComplete(true);
-            });
-          }}
-        />
+        <Appbar.Action icon="trash-can-outline" onPress={clear} />
       </Appbar.Header>
 
       {complete && (
@@ -333,7 +331,7 @@ const ScreenPembelianCreate = memo(({ navigation }) => {
       <WidgetBaseFABCreate
         disabled={calculateBayar < 0}
         icon="content-save-all-outline"
-        action={handleServicePembelianCreate}
+        action={create}
       />
 
       <WidgetBaseLoader complete={complete} />

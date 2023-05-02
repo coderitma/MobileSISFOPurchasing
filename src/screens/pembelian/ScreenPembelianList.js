@@ -11,50 +11,48 @@ import {
   ServiceBaseHumanDate,
 } from "../../services/ServiceBase";
 
-const ScreenPembelianList = memo(({ navigation }) => {
+const ScreenPembelianList = ({ navigation }) => {
+  const [terms, setTerms] = useState();
+  const [page, setPage] = useState();
+  const [complete, setComplete] = useState(false);
   const [daftarPembelian, setDaftarPembelian] = useState([]);
   const [pagination, setPagination] = useState({});
-  const [page, setPage] = useState(1);
-  const [terms, setTerms] = useState("");
-  const [complete, setComplete] = useState(false);
 
-  const handleServicePembelianList = (query) => {
+  const getAll = () => {
     setComplete(false);
-    setTimeout(() => {
-      if (query === "QUERY_EMPTY") {
-        ServicePembelianList()
-          .then(({ results, pagination }) => {
-            setDaftarPembelian(results);
-            setPagination(pagination);
-          })
-          .catch(() => {})
-          .finally(() => setComplete(true));
-      } else {
-        ServicePembelianList(page, terms)
-          .then(({ results, pagination }) => {
-            setDaftarPembelian(results);
-            setPagination(pagination);
-          })
-          .catch(() => {})
-          .finally(() => setComplete(true));
-      }
-    }, 100);
+    ServicePembelianList(page, terms)
+      .then(({ results, pagination }) => {
+        setDaftarPembelian(results);
+        setPagination(pagination);
+      })
+      .catch((error) => {
+        console.log(error);
+      })
+      .finally(() => setComplete(true));
   };
 
   useEffect(() => {
-    handleServicePembelianList();
+    getAll();
   }, [page]);
 
-  const handleRefresh = () => {
-    setTimeout(() => {
-      setPage(1);
-      setTerms("");
-      handleServicePembelianList("QUERY_EMPTY");
-    }, 100);
+  const search = () => {
+    setPage(1);
+    getAll();
   };
 
-  const openLaporan = () => {
-    navigation.navigate("ScreenPembelianReporting");
+  const reload = () => {
+    setTerms("");
+    setPage(1);
+    setComplete(false);
+    ServicePembelianList(1, null)
+      .then(({ results, pagination }) => {
+        setDaftarPembelian(results);
+        setPagination(pagination);
+      })
+      .catch((error) => {
+        console.log(error);
+      })
+      .finally(() => setComplete(true));
   };
 
   return (
@@ -62,21 +60,20 @@ const ScreenPembelianList = memo(({ navigation }) => {
       <Appbar.Header>
         <Appbar.Action icon="menu" onPress={() => navigation.toggleDrawer()} />
         <Appbar.Content title="Pembelian" />
-        <Appbar.Action icon="file-table-outline" onPress={openLaporan} />
-        <Appbar.Action icon="refresh" onPress={handleRefresh} />
+        <Appbar.Action
+          icon="table-arrow-right"
+          onPress={() => navigation.navigate("ScreenPembelianReporting")}
+        />
+        <Appbar.Action icon="refresh" onPress={reload} />
         <Appbar.Action
           icon="arrow-left"
           disabled={_.isNull(pagination?.prev)}
-          onPress={() => {
-            setTimeout(() => setPage(pagination?.prev), 100);
-          }}
+          onPress={() => setPage(pagination?.prev)}
         />
         <Appbar.Action
           icon="arrow-right"
           disabled={_.isNull(pagination?.next)}
-          onPress={() => {
-            setTimeout(() => setPage(pagination?.next), 100);
-          }}
+          onPress={() => setPage(pagination?.next)}
         />
       </Appbar.Header>
 
@@ -85,18 +82,14 @@ const ScreenPembelianList = memo(({ navigation }) => {
           <View>
             <Searchbar
               placeholder="Search"
-              value={terms || ""}
+              value={terms}
               onChangeText={(text) => setTerms(text)}
-              onSubmitEditing={() => {
-                page > 1 && setPage(1);
-                handleServicePembelianList();
-              }}
+              onSubmitEditing={search}
             />
             <DataTable>
               <DataTable.Header>
                 <DataTable.Title>Faktur</DataTable.Title>
                 <DataTable.Title>Tanggal</DataTable.Title>
-                <DataTable.Title>Supplier</DataTable.Title>
                 <DataTable.Title numeric>Total</DataTable.Title>
               </DataTable.Header>
 
@@ -109,12 +102,9 @@ const ScreenPembelianList = memo(({ navigation }) => {
                     });
                   }}>
                   <DataTable.Cell>{pembelian.faktur}</DataTable.Cell>
-
                   <DataTable.Cell>
                     {ServiceBaseHumanDate(pembelian.tanggal)}
                   </DataTable.Cell>
-
-                  <DataTable.Cell>{pembelian.kodePemasok}</DataTable.Cell>
                   <DataTable.Cell numeric>
                     {ServiceBaseHumanCurrency(pembelian.total)}
                   </DataTable.Cell>
@@ -131,6 +121,6 @@ const ScreenPembelianList = memo(({ navigation }) => {
       <WidgetBaseLoader complete={complete} />
     </>
   );
-});
+};
 
-export default ScreenPembelianList;
+export default memo(ScreenPembelianList);

@@ -1,58 +1,54 @@
-import { useEffect, useState } from "react";
-import { ServicePemasokList } from "../../services/ServicePemasok";
-import { Appbar, DataTable, Searchbar } from "react-native-paper";
 import _ from "lodash";
-import WidgetBaseLoader from "../../widgets/base/WidgetBaseLoader";
+import { memo, useEffect, useState } from "react";
 import { View } from "react-native";
-import WidgetBaseContainer from "../../widgets/base/WidgetBaseContainer";
+import { Appbar, DataTable, Searchbar } from "react-native-paper";
+import { ServicePemasokList } from "../../services/ServicePemasok";
 import WidgetBaseFABCreate from "../../widgets/base/WidgetBaseFABCreate";
+import WidgetBaseLoader from "../../widgets/base/WidgetBaseLoader";
+import WidgetBaseContainer from "../../widgets/base/WidgetBaseContainer";
 
 const ScreenPemasokList = ({ navigation }) => {
-  const [daftarPemasok, setDaftarPemasok] = useState();
-  const [pagination, setPagination] = useState();
-  const [page, setPage] = useState(1);
-  const [terms, setTerms] = useState("");
+  const [terms, setTerms] = useState();
+  const [page, setPage] = useState();
   const [complete, setComplete] = useState(false);
+  const [daftarPemasok, setDaftarPemasok] = useState([]);
+  const [pagination, setPagination] = useState({});
 
-  const handleServicePemasokList = (query) => {
+  const getAll = () => {
     setComplete(false);
-    setTimeout(() => {
-      if (query === "QUERY_EMPTY") {
-        ServicePemasokList()
-          .then(({ results, pagination }) => {
-            setDaftarPemasok(results);
-            setPagination(pagination);
-          })
-          .catch(() => {})
-          .finally(() => setComplete(true));
-      } else {
-        ServicePemasokList(page, terms)
-          .then(({ results, pagination }) => {
-            setDaftarPemasok(results);
-            setPagination(pagination);
-          })
-          .catch(() => {})
-          .finally(() => setComplete(true));
-      }
-    }, 100);
+    ServicePemasokList(page, terms)
+      .then(({ results, pagination }) => {
+        setDaftarPemasok(results);
+        setPagination(pagination);
+      })
+      .catch((error) => {
+        console.log(error);
+      })
+      .finally(() => setComplete(true));
   };
 
   useEffect(() => {
-    handleServicePemasokList();
+    getAll();
   }, [page]);
 
-  const handleRefresh = () => {
-    setTimeout(() => {
-      setPage(1);
-      setTerms("");
-      handleServicePemasokList("QUERY_EMPTY");
-    }, 100);
+  const search = () => {
+    setPage(1);
+    getAll();
   };
 
-  const handlePagination = (page) => {
-    setTimeout(() => {
-      setPage(page);
-    }, 100);
+  const reload = () => {
+    setTerms("");
+    setPage(1);
+    setComplete(false);
+    ServicePemasokList(1, null)
+      .then(({ results, pagination }) => {
+        setDaftarPemasok(results);
+        setPagination(pagination);
+      })
+      .catch((error) => {
+        console.log(error);
+      })
+      .finally(() => setComplete(true));
   };
 
   return (
@@ -60,16 +56,16 @@ const ScreenPemasokList = ({ navigation }) => {
       <Appbar.Header>
         <Appbar.Action icon="menu" onPress={() => navigation.toggleDrawer()} />
         <Appbar.Content title="Pemasok" />
-        <Appbar.Action icon="refresh" onPress={handleRefresh} />
+        <Appbar.Action icon="refresh" onPress={reload} />
         <Appbar.Action
           icon="arrow-left"
           disabled={_.isNull(pagination?.prev)}
-          onPress={() => handlePagination(pagination?.prev)}
+          onPress={() => setPage(pagination?.prev)}
         />
         <Appbar.Action
           icon="arrow-right"
           disabled={_.isNull(pagination?.next)}
-          onPress={() => handlePagination(pagination?.next)}
+          onPress={() => setPage(pagination?.next)}
         />
       </Appbar.Header>
 
@@ -78,34 +74,33 @@ const ScreenPemasokList = ({ navigation }) => {
           <View>
             <Searchbar
               placeholder="Search"
-              value={terms || ""}
+              value={terms}
               onChangeText={(text) => setTerms(text)}
-              onSubmitEditing={() => {
-                page > 1 && setPage(1);
-                handleServicePemasokList();
-              }}
+              onSubmitEditing={search}
             />
             <DataTable>
               <DataTable.Header>
                 <DataTable.Title>Kode Pemasok</DataTable.Title>
                 <DataTable.Title>Nama Pemasok</DataTable.Title>
-                <DataTable.Title>Telepon</DataTable.Title>
-                <DataTable.Title>Alamat</DataTable.Title>
+                <DataTable.Title>Alamat Pemasok</DataTable.Title>
+                <DataTable.Title>Telepon Pemasok</DataTable.Title>
               </DataTable.Header>
-            </DataTable>
 
-            {daftarPemasok.map((pemasok, index) => (
-              <DataTable.Row
-                key={index}
-                onPress={() =>
-                  navigation.navigate("ScreenPemasokEdit", { pemasok })
-                }>
-                <DataTable.Cell>{pemasok.kodePemasok}</DataTable.Cell>
-                <DataTable.Cell>{pemasok.namaPemasok}</DataTable.Cell>
-                <DataTable.Cell>{pemasok.teleponPemasok}</DataTable.Cell>
-                <DataTable.Cell>{pemasok.alamatPemasok}</DataTable.Cell>
-              </DataTable.Row>
-            ))}
+              {daftarPemasok.map((pemasok, index) => (
+                <DataTable.Row
+                  key={index}
+                  onPress={() => {
+                    navigation.navigate("ScreenPemasokEdit", {
+                      pemasok,
+                    });
+                  }}>
+                  <DataTable.Cell>{pemasok.kodePemasok}</DataTable.Cell>
+                  <DataTable.Cell>{pemasok.namaPemasok}</DataTable.Cell>
+                  <DataTable.Cell>{pemasok.alamatPemasok}</DataTable.Cell>
+                  <DataTable.Cell>{pemasok.teleponPemasok}</DataTable.Cell>
+                </DataTable.Row>
+              ))}
+            </DataTable>
           </View>
         )}
       </WidgetBaseContainer>
@@ -113,10 +108,9 @@ const ScreenPemasokList = ({ navigation }) => {
       <WidgetBaseFABCreate
         action={() => navigation.navigate("ScreenPemasokCreate")}
       />
-
       <WidgetBaseLoader complete={complete} />
     </>
   );
 };
 
-export default ScreenPemasokList;
+export default memo(ScreenPemasokList);
