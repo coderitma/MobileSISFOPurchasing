@@ -16,8 +16,8 @@ export default WidgetBaseContainer;
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
-    marginHorizontal: 16,
-    gap: 16,
-    paddingVertical: 16,
+    marginHorizontal: 0,
+    gap: 8,
+    paddingVertical: 0,
   },
 });

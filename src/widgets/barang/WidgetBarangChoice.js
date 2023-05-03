@@ -14,7 +14,7 @@ import { ServiceBarangList } from "../../services/ServiceBarang";
 import WidgetBaseLoader from "../../widgets/base/WidgetBaseLoader";
 import WidgetBaseContainer from "../../widgets/base/WidgetBaseContainer";
 
-const WidgetBarangChoice = memo(({ onPress }) => {
+const WidgetBarangChoice = ({ onPress }) => {
   const [daftarBarang, setDaftarBarang] = useState([]);
   const [terms, setTerms] = useState("");
   const [complete, setComplete] = useState(false);
@@ -139,6 +139,6 @@ const WidgetBarangChoice = memo(({ onPress }) => {
       </Provider>
     </>
   );
-});
+};
 
 export default WidgetBarangChoice;

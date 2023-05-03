@@ -1,97 +1,100 @@
-import { memo, useEffect, useState } from "react";
+import _ from "lodash";
+import { useEffect, useState } from "react";
 import { ServiceBarangCreate } from "../../services/ServiceBarang";
-import WidgetBaseContainer from "../../widgets/base/WidgetBaseContainer";
 import { Appbar, Button, TextInput } from "react-native-paper";
-import WidgetBaseGroup from "../../widgets/base/WidgetBaseGroup";
 import SchemaBarang from "../../schema/SchemaBarang";
 import WidgetBaseLoader from "../../widgets/base/WidgetBaseLoader";
+import { SafeAreaView, ScrollView, View } from "react-native";
 
-function ScreenBarangCreate({ navigation }) {
+const ScreenBarangCreate = ({ navigation }) => {
   const [barang, setBarang] = useState(SchemaBarang);
   const [complete, setComplete] = useState(false);
 
-  useEffect(() => {
-    setComplete(false);
-    const timeout = setTimeout(() => {
-      setComplete(true);
-      clearTimeout(timeout);
-    }, 1000);
-  }, []);
-
-  const handleChange = (name, value) => {
+  const handleInput = (name, value) => {
     setBarang((values) => ({ ...values, [name]: value }));
   };
 
-  const create = () => {
-    ServiceBarangCreate(barang)
-      .then(() => {
-        navigation.goBack();
-      })
-      .catch(() => {});
+  const barangCreate = () => {
+    setComplete(false);
+    const debounce = _.debounce(() => {
+      ServiceBarangCreate(barang)
+        .then(() => {
+          navigation.goBack();
+        })
+        .catch((error) => {
+          console.log(error);
+        })
+        .finally(() => setComplete(true));
+    }, 1000);
+    debounce();
   };
 
+  useEffect(() => {
+    setComplete(false);
+    const debounce = _.debounce(() => setComplete(true), 1000);
+    debounce();
+  }, []);
+
   return (
-    <>
+    <SafeAreaView style={{ flex: 1 }}>
       <Appbar.Header>
         <Appbar.BackAction onPress={() => navigation.goBack()} />
         <Appbar.Content title="Tambah Barang" />
       </Appbar.Header>
 
       {complete && (
-        <WidgetBaseContainer>
-          <WidgetBaseGroup>
+        <ScrollView
+          style={{
+            marginVertical: 24,
+            marginHorizontal: 24,
+          }}>
+          <View style={{ gap: 24 }}>
             <TextInput
               value={barang.kodeBarang || ""}
-              onChangeText={(text) => handleChange("kodeBarang", text)}
-              mode="outlined"
+              onChangeText={(text) => handleInput("kodeBarang", text)}
               label="Kode Barang"
             />
+
             <TextInput
               value={barang.namaBarang || ""}
-              onChangeText={(text) => handleChange("namaBarang", text)}
-              mode="outlined"
+              onChangeText={(text) => handleInput("namaBarang", text)}
               label="Nama Barang"
             />
 
             <TextInput
               value={`${barang.hargaBeli || ""}`}
-              onChangeText={(text) => handleChange("hargaBeli", parseInt(text))}
+              onChangeText={(text) => handleInput("hargaBeli", parseInt(text))}
               returnKeyType={"next"}
               keyboardType={"numeric"}
-              mode="outlined"
               label="Harga Beli"
             />
 
             <TextInput
               value={`${barang.hargaJual || ""}`}
-              onChangeText={(text) => handleChange("hargaJual", parseInt(text))}
+              onChangeText={(text) => handleInput("hargaJual", parseInt(text))}
               returnKeyType={"next"}
               keyboardType={"numeric"}
-              mode="outlined"
               label="Harga Jual"
             />
 
             <TextInput
               value={`${barang.jumlahBarang || ""}`}
               onChangeText={(text) =>
-                handleChange("jumlahBarang", parseInt(text))
+                handleInput("jumlahBarang", parseInt(text))
               }
-              returnKeyType={"next"}
               keyboardType={"numeric"}
-              mode="outlined"
               label="Jumlah Barang"
             />
-          </WidgetBaseGroup>
-          <WidgetBaseGroup>
-            <Button onPress={create} mode="contained">
+            <Button onPress={barangCreate} mode="contained">
               Simpan
             </Button>
-          </WidgetBaseGroup>
-        </WidgetBaseContainer>
+          </View>
+        </ScrollView>
       )}
-      <WidgetBaseLoader complete={complete} />
-    </>
-  );
-}
 
-export default memo(ScreenBarangCreate);
+      <WidgetBaseLoader complete={complete} />
+    </SafeAreaView>
+  );
+};
+
+export default ScreenBarangCreate;

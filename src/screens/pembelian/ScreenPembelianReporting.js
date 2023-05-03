@@ -21,7 +21,6 @@ const ScreenPembelianReporting = memo(({ navigation }) => {
 
   useEffect(() => {
     setComplete(false);
-
     setTimeout(() => setComplete(true), 1000);
   }, []);
 

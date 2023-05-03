@@ -1,29 +1,16 @@
 import { memo } from "react";
-import { View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import { ActivityIndicator, MD2Colors, Modal, Text } from "react-native-paper";
 
 const WidgetBaseLoader = memo(({ complete }) => {
   if (!complete) {
     return (
-      <Modal
-        animationType="fade"
-        style={{ backgroundColor: "rgba(0, 0, 0, 0.2)" }}
-        visible={!complete}>
-        <View
-          style={{
-            justifyContent: "center",
-            alignItems: "center",
-            gap: 10,
-          }}>
-          <ActivityIndicator
-            size={40}
-            animating={true}
-            color={MD2Colors.blue200}
-          />
-          <Text style={{ color: "white" }} variant="bodyLarge">
-            Waiting moment...
-          </Text>
-        </View>
+      <Modal animationType="fade" style={styles.container} visible={!complete}>
+        <ActivityIndicator
+          size={32}
+          animating={true}
+          color={MD2Colors.deepOrange50}
+        />
       </Modal>
     );
   } else {
@@ -32,3 +19,11 @@ const WidgetBaseLoader = memo(({ complete }) => {
 });
 
 export default WidgetBaseLoader;
+
+const styles = StyleSheet.create({
+  container: {
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+});

@@ -1,108 +1,137 @@
 import { useEffect, useState } from "react";
 import { Appbar, Button, TextInput } from "react-native-paper";
-import WidgetBaseContainer from "../../widgets/base/WidgetBaseContainer";
-import WidgetBaseGroup from "../../widgets/base/WidgetBaseGroup";
 import {
   ServicePemasokDelete,
   ServicePemasokEdit,
 } from "../../services/ServicePemasok";
-import { Alert } from "react-native";
+import { Alert, SafeAreaView, View } from "react-native";
 import _ from "lodash";
 import WidgetBaseLoader from "../../widgets/base/WidgetBaseLoader";
+import { ScrollView } from "react-native-gesture-handler";
 
-function ScreenPemasokEdit({ navigation, route }) {
+const ScreenPemasokEdit = ({ navigation, route }) => {
   const [complete, setComplete] = useState(false);
   const [pemasok, setPemasok] = useState({});
 
-  useEffect(() => {
-    const time = setTimeout(() => {
-      setPemasok(route.params.pemasok);
-      setComplete(true);
-      clearTimeout(time);
-    }, 1000);
-  }, [route.params.pemasok]);
-
-  const handleChange = (name, value) => {
+  const handleInput = (name, value) => {
     setPemasok((values) => ({ ...values, [name]: value }));
   };
 
-  const edit = () => {
-    ServicePemasokEdit(pemasok)
-      .then(() => {
-        navigation.goBack();
-      })
-      .catch(() => {});
+  const pemasokEdit = () => {
+    setComplete(false);
+    const debounce = _.debounce(() => {
+      ServicePemasokEdit(pemasok)
+        .then(() => {
+          Alert.alert("Notifikasi", "Berhasil");
+          navigation.goBack();
+        })
+        .catch((error) => {
+          console.log(error);
+        })
+        .finally(() => setComplete(true));
+    }, 1000);
+
+    debounce();
   };
 
-  const remove = () => {
-    Alert.alert("Konfirmasi", "Yakin ingin menghapus?", [
+  const askDelete = () => {
+    const actions = [
       {
         text: "Ya",
-        onPress: () => {
-          ServicePemasokDelete(pemasok.kodePemasok)
-            .then(() => {
-              Alert.alert("Berhasil", "Pemasok berhasil dihapus!");
-              navigation.goBack();
-            })
-            .catch(() => {});
-        },
+        onPress: () => pemasokDelete(),
       },
       {
         text: "Batal",
         style: "cancel",
       },
-    ]);
+    ];
+
+    Alert.alert("Konfirmasi", "Ingin dihapus?", actions);
   };
 
+  const pemasokDelete = () => {
+    const debounce = _.debounce(() => {
+      ServicePemasokDelete(pemasok.kodePemasok)
+        .then(() => {
+          Alert.alert("Notifikasi", "Berhasil");
+          navigation.goBack();
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+    }, 100);
+
+    debounce();
+  };
+
+  useEffect(() => {
+    setComplete(false);
+    const debounce = _.debounce(() => {
+      setPemasok(route.params.pemasok);
+      setComplete(true);
+    }, 1000);
+    debounce();
+  }, [route.params.pemasok]);
+
   return (
-    <>
+    <SafeAreaView style={{ flex: 1 }}>
       <Appbar.Header>
         <Appbar.BackAction onPress={() => navigation.goBack()} />
         <Appbar.Content title="Edit Pemasok" />
-        <Appbar.Action icon="trash-can-outline" onPress={remove} />
+        <Appbar.Action icon="trash-can-outline" onPress={askDelete} />
       </Appbar.Header>
 
       {complete && (
-        <WidgetBaseContainer>
-          <WidgetBaseGroup>
+        <ScrollView
+          style={{
+            marginVertical: 24,
+            marginHorizontal: 24,
+          }}>
+          <View style={{ gap: 24 }}>
             <TextInput
               value={pemasok.kodePemasok || ""}
-              onChangeText={(text) => handleChange("kodePemasok", text)}
-              mode="outlined"
+              onChangeText={(text) => handleInput("kodePemasok", text)}
               label="Kode Pemasok"
+              disabled
             />
             <TextInput
               value={pemasok.namaPemasok || ""}
-              onChangeText={(text) => handleChange("namaPemasok", text)}
-              mode="outlined"
+              onChangeText={(text) => handleInput("namaPemasok", text)}
               label="Nama Pemasok"
             />
 
             <TextInput
-              value={`${pemasok.alamatPemasok || ""}`}
-              onChangeText={(text) => handleChange("alamatPemasok", text)}
-              mode="outlined"
-              label="Alamat Pemasok"
+              value={`${pemasok.hargaBeli || ""}`}
+              onChangeText={(text) => handleInput("hargaBeli", parseInt(text))}
+              keyboardType={"numeric"}
+              label="Harga Beli"
             />
 
             <TextInput
-              value={`${pemasok.teleponPemasok || ""}`}
-              onChangeText={(text) => handleChange("teleponPemasok", text)}
-              mode="outlined"
-              label="Telepon Pemasok"
+              value={`${pemasok.hargaJual || ""}`}
+              onChangeText={(text) => handleInput("hargaJual", parseInt(text))}
+              keyboardType={"numeric"}
+              label="Harga Jual"
             />
-          </WidgetBaseGroup>
-          <WidgetBaseGroup>
-            <Button onPress={edit} mode="contained">
+
+            <TextInput
+              value={`${pemasok.jumlahPemasok || ""}`}
+              onChangeText={(text) =>
+                handleInput("jumlahPemasok", parseInt(text))
+              }
+              keyboardType={"numeric"}
+              label="Jumlah Pemasok"
+            />
+
+            <Button onPress={pemasokEdit} mode="contained">
               Simpan Perubahan
             </Button>
-          </WidgetBaseGroup>
-        </WidgetBaseContainer>
+          </View>
+        </ScrollView>
       )}
-
       <WidgetBaseLoader complete={complete} />
-    </>
+    </SafeAreaView>
   );
-}
+};
 
 export default ScreenPemasokEdit;

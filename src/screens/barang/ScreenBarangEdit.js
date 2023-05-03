@@ -1,122 +1,137 @@
 import { useEffect, useState } from "react";
 import { Appbar, Button, TextInput } from "react-native-paper";
-import WidgetBaseContainer from "../../widgets/base/WidgetBaseContainer";
-import WidgetBaseGroup from "../../widgets/base/WidgetBaseGroup";
 import {
   ServiceBarangDelete,
   ServiceBarangEdit,
 } from "../../services/ServiceBarang";
-import { Alert } from "react-native";
+import { Alert, SafeAreaView, View } from "react-native";
 import _ from "lodash";
 import WidgetBaseLoader from "../../widgets/base/WidgetBaseLoader";
+import { ScrollView } from "react-native-gesture-handler";
 
-function ScreenBarangEdit({ navigation, route }) {
+const ScreenBarangEdit = ({ navigation, route }) => {
   const [complete, setComplete] = useState(false);
   const [barang, setBarang] = useState({});
 
-  useEffect(() => {
-    const time = setTimeout(() => {
-      setBarang(route.params.barang);
-      setComplete(true);
-      clearTimeout(time);
-    }, 1000);
-  }, [route.params.barang]);
-
-  const handleChange = (name, value) => {
+  const handleInput = (name, value) => {
     setBarang((values) => ({ ...values, [name]: value }));
   };
 
-  const edit = () => {
-    ServiceBarangEdit(barang)
-      .then(() => {
-        navigation.goBack();
-      })
-      .catch(() => {});
+  const barangEdit = () => {
+    setComplete(false);
+    const debounce = _.debounce(() => {
+      ServiceBarangEdit(barang)
+        .then(() => {
+          Alert.alert("Notifikasi", "Berhasil");
+          navigation.goBack();
+        })
+        .catch((error) => {
+          console.log(error);
+        })
+        .finally(() => setComplete(true));
+    }, 1000);
+
+    debounce();
   };
 
-  const remove = () => {
-    Alert.alert("Konfirmasi", "Yakin ingin menghapus?", [
+  const askDelete = () => {
+    const actions = [
       {
         text: "Ya",
-        onPress: () => {
-          ServiceBarangDelete(barang.kodeBarang)
-            .then(() => {
-              Alert.alert("Berhasil", "Barang berhasil dihapus!");
-              navigation.goBack();
-            })
-            .catch(() => {});
-        },
+        onPress: () => barangDelete(),
       },
       {
         text: "Batal",
         style: "cancel",
       },
-    ]);
+    ];
+
+    Alert.alert("Konfirmasi", "Ingin dihapus?", actions);
   };
 
+  const barangDelete = () => {
+    const debounce = _.debounce(() => {
+      ServiceBarangDelete(barang.kodeBarang)
+        .then(() => {
+          Alert.alert("Notifikasi", "Berhasil");
+          navigation.goBack();
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+    }, 100);
+
+    debounce();
+  };
+
+  useEffect(() => {
+    setComplete(false);
+    const debounce = _.debounce(() => {
+      setBarang(route.params.barang);
+      setComplete(true);
+    }, 1000);
+    debounce();
+  }, [route.params.barang]);
+
   return (
-    <>
+    <SafeAreaView style={{ flex: 1 }}>
       <Appbar.Header>
         <Appbar.BackAction onPress={() => navigation.goBack()} />
         <Appbar.Content title="Edit Barang" />
-        <Appbar.Action icon="trash-can-outline" onPress={remove} />
+        <Appbar.Action icon="trash-can-outline" onPress={askDelete} />
       </Appbar.Header>
 
       {complete && (
-        <WidgetBaseContainer>
-          <WidgetBaseGroup>
+        <ScrollView
+          style={{
+            marginVertical: 24,
+            marginHorizontal: 24,
+          }}>
+          <View style={{ gap: 24 }}>
             <TextInput
               value={barang.kodeBarang || ""}
-              onChangeText={(text) => handleChange("kodeBarang", text)}
-              mode="outlined"
+              onChangeText={(text) => handleInput("kodeBarang", text)}
               label="Kode Barang"
               disabled
             />
             <TextInput
               value={barang.namaBarang || ""}
-              onChangeText={(text) => handleChange("namaBarang", text)}
-              mode="outlined"
+              onChangeText={(text) => handleInput("namaBarang", text)}
               label="Nama Barang"
             />
 
             <TextInput
               value={`${barang.hargaBeli || ""}`}
-              selectTextOnFocus
-              onChangeText={(text) => handleChange("hargaBeli", parseInt(text))}
+              onChangeText={(text) => handleInput("hargaBeli", parseInt(text))}
               keyboardType={"numeric"}
-              mode="outlined"
               label="Harga Beli"
             />
 
             <TextInput
               value={`${barang.hargaJual || ""}`}
-              onChangeText={(text) => handleChange("hargaJual", parseInt(text))}
+              onChangeText={(text) => handleInput("hargaJual", parseInt(text))}
               keyboardType={"numeric"}
-              mode="outlined"
               label="Harga Jual"
             />
 
             <TextInput
               value={`${barang.jumlahBarang || ""}`}
               onChangeText={(text) =>
-                handleChange("jumlahBarang", parseInt(text))
+                handleInput("jumlahBarang", parseInt(text))
               }
               keyboardType={"numeric"}
-              mode="outlined"
               label="Jumlah Barang"
             />
-          </WidgetBaseGroup>
-          <WidgetBaseGroup>
-            <Button onPress={edit} mode="contained">
+
+            <Button onPress={barangEdit} mode="contained">
               Simpan Perubahan
             </Button>
-          </WidgetBaseGroup>
-        </WidgetBaseContainer>
+          </View>
+        </ScrollView>
       )}
-
       <WidgetBaseLoader complete={complete} />
-    </>
+    </SafeAreaView>
   );
-}
+};
 
 export default ScreenBarangEdit;
