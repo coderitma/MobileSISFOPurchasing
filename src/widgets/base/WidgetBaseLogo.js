@@ -1,12 +1,11 @@
-import { StyleSheet, View, Image } from "react-native";
-import { Text } from "react-native-paper";
+import { StyleSheet, View, Image, Platform } from "react-native";
+import { MD2Colors, Text } from "react-native-paper";
 
 const WidgetBaseLogo = () => {
-  const url =
-    "https://icons.iconarchive.com/icons/webalys/kameleon.pics/512/Conveyor-Belt-icon.png";
+  const url = require("../../../assets/adaptive-icon.png");
   return (
     <View style={styles.container}>
-      <Image source={{ uri: url }} style={styles.image} />
+      <Image source={url} style={styles.image} />
       <Text variant="titleMedium">Mobile SISFO Purchasing</Text>
       <Text variant="bodySmall">by StuvidLabs {new Date().getFullYear()}</Text>
     </View>
@@ -21,9 +20,11 @@ const styles = StyleSheet.create({
   },
   image: {
     resizeMode: "center",
-    width: 190,
-    height: 190,
+    width: 160,
+    height: 160,
     alignSelf: "center",
-    marginBottom: 20,
+    marginBottom: 30,
+    borderRadius: 48,
+    backgroundColor: MD2Colors.deepPurple600,
   },
 });

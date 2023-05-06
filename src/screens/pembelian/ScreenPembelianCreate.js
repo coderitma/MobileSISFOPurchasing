@@ -1,8 +1,9 @@
 import _ from "lodash";
-import { memo, useEffect, useMemo, useState } from "react";
-import { Alert, View } from "react-native";
+import { memo, useCallback, useEffect, useMemo, useState } from "react";
+import { Alert, SafeAreaView, View } from "react-native";
 import {
   Appbar,
+  Button,
   DataTable,
   Divider,
   List,
@@ -10,9 +11,7 @@ import {
 } from "react-native-paper";
 import WidgetBaseFABCreate from "../../widgets/base/WidgetBaseFABCreate";
 import WidgetBaseLoader from "../../widgets/base/WidgetBaseLoader";
-import WidgetBaseContainer from "../../widgets/base/WidgetBaseContainer";
 import ServiceBaseRandomID, {
-  ServiceBaseActivity,
   ServiceBaseFileSharing,
   ServiceBaseHumanCurrency,
   ServiceBaseHumanDate,
@@ -21,13 +20,13 @@ import ServiceBaseRandomID, {
 import WidgetBarangChoice from "../../widgets/barang/WidgetBarangChoice";
 import WidgetPemasokChoice from "../../widgets/pemasok/WidgetPemasokChoice";
 import SchemaPemasok from "../../schema/SchemaPemasok";
-import WidgetBaseGroup from "../../widgets/base/WidgetBaseGroup";
 import SchemaPembelian from "../../schema/SchemaPembelian";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import {
   ServicePembelianCreate,
   ServicePembelianPrint,
 } from "../../services/ServicePembelian";
+import { ScrollView } from "react-native-gesture-handler";
 
 const ScreenPembelianCreate = memo(({ navigation }) => {
   const [pembelian, setPembelian] = useState(SchemaPembelian);
@@ -36,19 +35,16 @@ const ScreenPembelianCreate = memo(({ navigation }) => {
   const [complete, setComplete] = useState(true);
   const [showDatePicker, setShowDatePicker] = useState(false);
 
-  useEffect(() => {
-    setComplete(false);
-    setTimeout(() => {
-      setComplete(true);
-    }, 1000);
-  }, []);
-
-  const handleChange = (name, value) => {
+  const handleInput = (name, value) => {
     if (name === "tanggal") setShowDatePicker(false);
     setPembelian((values) => ({ ...values, [name]: value }));
   };
 
-  const handleChangeItemBeli = (index, value, item) => {
+  const randomFaktur = () => {
+    handleInput("faktur", ServiceBaseRandomID("BELI"));
+  };
+
+  const handleInputItemBeli = (index, value, item) => {
     setDaftarItemBeli((values) => {
       const qty = parseInt(value);
       const items = [...values];
@@ -64,7 +60,7 @@ const ScreenPembelianCreate = memo(({ navigation }) => {
     });
   };
 
-  const updateItem = (item) => {
+  const update = (item) => {
     setTimeout(() => {
       setDaftarItemBeli((values) => {
         const items = [...values];
@@ -80,7 +76,7 @@ const ScreenPembelianCreate = memo(({ navigation }) => {
     }, 100);
   };
 
-  const addItem = (item) => {
+  const add = (item) => {
     setTimeout(() => {
       const payload = {
         kodeBarang: item.kodeBarang,
@@ -94,18 +90,21 @@ const ScreenPembelianCreate = memo(({ navigation }) => {
     }, 100);
   };
 
-  const addOrUpdateItem = (item) => {
-    const isDuplicate = ServiceBaseIsDuplicateArray(
-      daftarItemBeli,
-      item.kodeBarang,
-      "kodeBarang"
-    );
-    if (isDuplicate) {
-      updateItem(item);
-    } else {
-      addItem(item);
-    }
-  };
+  const addOrUpdate = useCallback(
+    (item) => {
+      const isDuplicate = ServiceBaseIsDuplicateArray(
+        daftarItemBeli,
+        item.kodeBarang,
+        "kodeBarang"
+      );
+      if (isDuplicate) {
+        update(item);
+      } else {
+        add(item);
+      }
+    },
+    [daftarItemBeli]
+  );
 
   const addPemasok = (pemasok) => {
     setTimeout(() => {
@@ -117,64 +116,78 @@ const ScreenPembelianCreate = memo(({ navigation }) => {
 
   const calculateSubtotal = useMemo(() => {
     const total = _.sumBy(daftarItemBeli, "subtotal");
-    handleChange("total", total);
+    handleInput("total", total);
     return total;
   }, [daftarItemBeli]);
 
   const calculateBayar = useMemo(() => {
     const kembalian = pembelian.dibayar - calculateSubtotal;
-    handleChange("kembali", kembalian);
+    handleInput("kembali", kembalian);
     return kembalian;
   }, [daftarItemBeli, pembelian.dibayar]);
 
-  const share = (faktur) => {
+  const askShare = () => {
     const actions = [
       {
         text: "Ya",
-        onPress: () => {
-          ServicePembelianPrint(faktur)
-            .then(async (blob) => {
-              try {
-                await ServiceBaseFileSharing("FAKTUR", blob);
-                clear();
-                navigation.goBack();
-              } catch (error) {
-                console.log(error);
-              }
-            })
-            .catch((error) => {
-              console.log(error);
-            });
-        },
+        onPress: pembelianPrint,
       },
       {
-        text: "Kembali",
-        onPress: () => navigation.goBack(),
+        text: "Batal",
+        onPress: navigation.goBack,
         style: "cancel",
       },
     ];
 
-    Alert.alert("Cetak Faktur?", null, actions);
+    Alert.alert("Share Faktur?", null, actions);
   };
 
-  const create = () => {
-    pembelian.kodePemasok = pemasok.kodePemasok;
+  const pembelianPrint = () => {
+    setComplete(false);
+    const debounce = _.debounce(() => {
+      ServicePembelianPrint(pembelian.faktur)
+        .then(async (blob) => {
+          ServiceBaseFileSharing("FAKTUR", blob);
+          clear();
+        })
+        .catch((error) => {
+          console.log(error);
+        })
+        .finally(() => {
+          setComplete(true);
+          navigation.goBack();
+        });
+    }, 1000);
 
-    const payload = {
-      ...pembelian,
-      items: [...daftarItemBeli],
-    };
+    debounce();
+  };
 
+  const pembelianCreate = () => {
     setComplete(false);
 
-    ServicePembelianCreate(payload)
-      .then((data) => {
-        share(data.faktur);
-      })
-      .catch((error) => {
-        console.log(error);
-      })
-      .finally(() => setComplete(true));
+    const debounce = _.debounce(() => {
+      pembelian.kodePemasok = pemasok.kodePemasok;
+
+      const payload = {
+        ...pembelian,
+        items: [...daftarItemBeli],
+      };
+
+      setComplete(false);
+
+      ServicePembelianCreate(payload)
+        .then((data) => {
+          askShare();
+        })
+        .catch((error) => {
+          console.log(error);
+        })
+        .finally(() => {
+          setComplete(true);
+        });
+    }, 1000);
+
+    debounce();
   };
 
   const clear = () => {
@@ -184,8 +197,16 @@ const ScreenPembelianCreate = memo(({ navigation }) => {
     setPembelian(SchemaPembelian);
   };
 
+  useEffect(() => {
+    setComplete(false);
+    const debounce = _.debounce(() => {
+      setComplete(true);
+    }, 1000);
+    debounce();
+  }, []);
+
   return (
-    <>
+    <SafeAreaView style={{ flex: 1 }}>
       <Appbar.Header>
         <Appbar.Action
           icon="arrow-left"
@@ -196,146 +217,124 @@ const ScreenPembelianCreate = memo(({ navigation }) => {
         <Appbar.Content title="Buat Transaksi Pembelian" />
         <Appbar.Action icon="trash-can-outline" onPress={clear} />
       </Appbar.Header>
-
       {complete && (
-        <WidgetBaseContainer style={{ marginHorizontal: 0 }}>
-          <View>
-            <WidgetBaseContainer>
-              <WidgetBaseGroup>
-                <TextInput
-                  value={`${pembelian.faktur}`}
-                  onChangeText={(text) => handleChange("faktur", text)}
-                  label="Nomor Faktur"
-                  mode="outlined"
-                  editable={false}
-                  right={
-                    <TextInput.Icon
-                      onPress={() => {
-                        setTimeout(
-                          () =>
-                            handleChange("faktur", ServiceBaseRandomID("BELI")),
-                          100
-                        );
-                      }}
-                      icon="reload"
-                    />
-                  }
+        <ScrollView contentContainerStyle={{ paddingBottom: 24 }}>
+          <View style={{ marginHorizontal: 16, gap: 16, marginVertical: 24 }}>
+            <TextInput
+              value={`${pembelian.faktur}`}
+              onChangeText={(text) => handleInput("faktur", text)}
+              label="Nomor Faktur"
+              mode="outlined"
+              editable={false}
+              right={<TextInput.Icon onPress={randomFaktur} icon="reload" />}
+            />
+            <TextInput
+              label="Tanggal"
+              mode="outlined"
+              editable={false}
+              value={`${ServiceBaseHumanDate(pembelian.tanggal)}`}
+              right={
+                <TextInput.Icon
+                  onPress={() => setShowDatePicker(true)}
+                  icon="calendar"
                 />
-                <TextInput
-                  label="Tanggal"
-                  mode="outlined"
-                  editable={false}
-                  value={`${ServiceBaseHumanDate(pembelian.tanggal)}`}
-                  right={
-                    <TextInput.Icon
-                      onPress={() => setShowDatePicker(true)}
-                      icon="calendar"
-                    />
-                  }
-                />
-                {showDatePicker && (
-                  <DateTimePicker
-                    value={pembelian.tanggal || new Date()}
-                    mode={"date"}
-                    display={Platform.OS === "ios" ? "spinner" : "default"}
-                    is24Hour={true}
-                    onChange={(event, value) => handleChange("tanggal", value)}
-                  />
-                )}
-              </WidgetBaseGroup>
-            </WidgetBaseContainer>
-            <WidgetPemasokChoice onPress={(item) => addPemasok(item)} />
-            <Divider />
-            {!_.isEmpty(pemasok.kodePemasok) && (
-              <List.Item
-                title={pemasok.namaPemasok}
-                description={pemasok.teleponPemasok}
-              />
-            )}
-            <Divider />
-            <WidgetBarangChoice onPress={(item) => addOrUpdateItem(item)} />
-            <Divider />
-            {daftarItemBeli.map((barang, index) => (
-              <View key={index}>
-                <Divider />
-                <List.Item
-                  key={index}
-                  title={`${barang.namaBarang} #${barang.kodeBarang}`}
-                  description={ServiceBaseHumanCurrency(barang.hargaBeli)}
-                  right={(props) => (
-                    <>
-                      <TextInput
-                        key={index}
-                        mode="outlined"
-                        value={`${daftarItemBeli[index].jumlahBeli || ""}`}
-                        onChangeText={(text) =>
-                          handleChangeItemBeli(index, text, barang)
-                        }
-                      />
-                    </>
-                  )}
-                />
-              </View>
-            ))}
-            <Divider />
-            <DataTable>
-              <DataTable.Row>
-                <DataTable.Title>Jumlah Item</DataTable.Title>
-                <DataTable.Cell numeric>
-                  {calculateTotal || 0} item
-                </DataTable.Cell>
-              </DataTable.Row>
-              <DataTable.Row>
-                <DataTable.Title>Total</DataTable.Title>
-                <DataTable.Cell numeric>
-                  {ServiceBaseHumanCurrency(calculateSubtotal) || 0}
-                </DataTable.Cell>
-              </DataTable.Row>
-            </DataTable>
-
-            <WidgetBaseContainer>
-              <WidgetBaseGroup>
-                <TextInput
-                  value={`${pembelian.dibayar || ""}`}
-                  error={calculateBayar < 0}
-                  onChangeText={(text) =>
-                    handleChange("dibayar", parseInt(text))
-                  }
-                  label="Dibayar"
-                  mode="outlined"
-                  right={
-                    <TextInput.Icon
-                      onPress={() => {
-                        setTimeout(
-                          () => handleChange("dibayar", calculateSubtotal),
-                          100
-                        );
-                      }}
-                      icon="auto-fix"
-                    />
-                  }
-                />
-                <TextInput
-                  value={`${calculateBayar}`}
-                  error={calculateBayar < 0}
-                  label="Kembali"
-                  disabled={true}
-                  mode="outlined"
-                />
-              </WidgetBaseGroup>
-            </WidgetBaseContainer>
+              }
+            />
           </View>
-        </WidgetBaseContainer>
+          <Divider />
+          {showDatePicker && (
+            <DateTimePicker
+              value={pembelian.tanggal || new Date()}
+              mode={"date"}
+              display={Platform.OS === "ios" ? "spinner" : "default"}
+              is24Hour={true}
+              onChange={(event, value) => handleInput("tanggal", value)}
+            />
+          )}
+
+          <WidgetPemasokChoice onPress={(item) => addPemasok(item)} />
+          {!_.isEmpty(pemasok.kodePemasok) && (
+            <List.Item
+              title={pemasok.namaPemasok}
+              description={pemasok.teleponPemasok}
+            />
+          )}
+          <Divider />
+
+          <WidgetBarangChoice onPress={(item) => addOrUpdate(item)} />
+          {daftarItemBeli.map((barang, index) => (
+            <View key={index}>
+              <List.Item
+                key={index}
+                title={`${barang.namaBarang} #${barang.kodeBarang}`}
+                description={ServiceBaseHumanCurrency(barang.hargaBeli)}
+                right={(props) => (
+                  <>
+                    <TextInput
+                      key={index}
+                      mode="outlined"
+                      value={`${daftarItemBeli[index].jumlahBeli || ""}`}
+                      onChangeText={(text) =>
+                        handleInputItemBeli(index, text, barang)
+                      }
+                    />
+                  </>
+                )}
+              />
+            </View>
+          ))}
+          <Divider />
+
+          <DataTable>
+            <DataTable.Row>
+              <DataTable.Title>Jumlah Item</DataTable.Title>
+              <DataTable.Cell numeric>
+                {calculateTotal || 0} item
+              </DataTable.Cell>
+            </DataTable.Row>
+            <DataTable.Row>
+              <DataTable.Title>Total</DataTable.Title>
+              <DataTable.Cell numeric>
+                {ServiceBaseHumanCurrency(calculateSubtotal) || 0}
+              </DataTable.Cell>
+            </DataTable.Row>
+            <DataTable.Row>
+              <DataTable.Title>Kembali</DataTable.Title>
+              <DataTable.Cell numeric>
+                {ServiceBaseHumanCurrency(calculateBayar) || 0}
+              </DataTable.Cell>
+            </DataTable.Row>
+          </DataTable>
+          <View style={{ marginHorizontal: 16, gap: 16, marginVertical: 24 }}>
+            <TextInput
+              value={`${pembelian.dibayar || ""}`}
+              error={calculateBayar < 0}
+              onChangeText={(text) => handleInput("dibayar", parseInt(text))}
+              label="Dibayar"
+              mode="outlined"
+              right={
+                <TextInput.Icon
+                  onPress={() => {
+                    setTimeout(
+                      () => handleInput("dibayar", calculateSubtotal),
+                      100
+                    );
+                  }}
+                  icon="auto-fix"
+                />
+              }
+            />
+            <Button
+              mode="contained"
+              disabled={calculateBayar < 0}
+              onPress={pembelianCreate}>
+              Simpan
+            </Button>
+          </View>
+        </ScrollView>
       )}
-
-      <WidgetBaseFABCreate
-        disabled={calculateBayar < 0}
-        icon="content-save-all-outline"
-        action={create}
-      />
-
       <WidgetBaseLoader complete={complete} />
-    </>
+    </SafeAreaView>
   );
 });
 
