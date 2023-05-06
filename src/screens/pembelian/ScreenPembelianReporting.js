@@ -1,7 +1,6 @@
 import { memo, useEffect, useState } from "react";
 import WidgetBaseLoader from "../../widgets/base/WidgetBaseLoader";
 import { Appbar, Button, TextInput } from "react-native-paper";
-import WidgetBaseContainer from "../../widgets/base/WidgetBaseContainer";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import {
   ServiceBaseDateToISO,
@@ -9,6 +8,8 @@ import {
   ServiceBaseHumanDate,
 } from "../../services/ServiceBase";
 import { ServicePembelianReport } from "../../services/ServicePembelian";
+import { SafeAreaView } from "react-native";
+import { ScrollView } from "react-native-gesture-handler";
 
 const ScreenPembelianReporting = memo(({ navigation }) => {
   const [complete, setComplete] = useState(false);
@@ -34,7 +35,7 @@ const ScreenPembelianReporting = memo(({ navigation }) => {
     ServicePembelianReport(payload)
       .then(async (blob) => {
         try {
-          await ServiceBaseFileSharing("LAPORAN-PEMBELIAN", blob);
+          ServiceBaseFileSharing("LAPORAN-PEMBELIAN", blob);
         } catch (error) {
           console.log(error);
         } finally {
@@ -48,42 +49,45 @@ const ScreenPembelianReporting = memo(({ navigation }) => {
   };
 
   return (
-    <>
+    <SafeAreaView style={{ flex: 1 }}>
       <Appbar.Header>
         <Appbar.BackAction onPress={() => navigation.goBack()} />
         <Appbar.Content title="Laporan Pembelian" />
       </Appbar.Header>
       {complete && (
-        <>
-          <WidgetBaseContainer>
-            <TextInput
-              label="Tanggal Awal"
-              mode="outlined"
-              editable={false}
-              right={
-                <TextInput.Icon
-                  icon="calendar"
-                  onPress={() => setOpenStartDate(true)}
-                />
-              }
-              value={`${ServiceBaseHumanDate(reportPayload.startDate)}`}
-            />
-            <TextInput
-              label="Tanggal Akhir"
-              mode="outlined"
-              right={
-                <TextInput.Icon
-                  icon="calendar"
-                  onPress={() => setOpenEndDate(true)}
-                />
-              }
-              value={`${ServiceBaseHumanDate(reportPayload.endDate)}`}
-            />
+        <ScrollView
+          contentContainerStyle={{
+            gap: 16,
+            marginVertical: 24,
+            marginHorizontal: 24,
+          }}>
+          <TextInput
+            label="Tanggal Awal"
+            mode="outlined"
+            editable={false}
+            right={
+              <TextInput.Icon
+                icon="calendar"
+                onPress={() => setOpenStartDate(true)}
+              />
+            }
+            value={`${ServiceBaseHumanDate(reportPayload.startDate)}`}
+          />
+          <TextInput
+            label="Tanggal Akhir"
+            mode="outlined"
+            right={
+              <TextInput.Icon
+                icon="calendar"
+                onPress={() => setOpenEndDate(true)}
+              />
+            }
+            value={`${ServiceBaseHumanDate(reportPayload.endDate)}`}
+          />
 
-            <Button mode="contained" onPress={send}>
-              Kirim
-            </Button>
-          </WidgetBaseContainer>
+          <Button mode="contained" onPress={send}>
+            Kirim
+          </Button>
 
           {openStartDate && (
             <DateTimePicker
@@ -109,10 +113,10 @@ const ScreenPembelianReporting = memo(({ navigation }) => {
               }}
             />
           )}
-        </>
+        </ScrollView>
       )}
       <WidgetBaseLoader complete={complete} />
-    </>
+    </SafeAreaView>
   );
 });
 
