@@ -1,85 +1,99 @@
-import { useCallback, useState } from "react";
-import SchemaPemasok from "../../schema/SchemaPemasok";
-import { useFocusEffect } from "@react-navigation/native";
+import _ from "lodash";
+import { useEffect, useState } from "react";
 import { ServicePemasokCreate } from "../../services/ServicePemasok";
 import { Appbar, Button, TextInput } from "react-native-paper";
+import SchemaPemasok from "../../schema/SchemaPemasok";
 import WidgetBaseLoader from "../../widgets/base/WidgetBaseLoader";
-import WidgetBaseContainer from "../../widgets/base/WidgetBaseContainer";
-import WidgetBaseGroup from "../../widgets/base/WidgetBaseGroup";
+import { SafeAreaView, ScrollView, View } from "react-native";
 
-const ScreenPemasokCreate = ({ navigation, route }) => {
+const ScreenPemasokCreate = ({ navigation }) => {
   const [pemasok, setPemasok] = useState(SchemaPemasok);
   const [complete, setComplete] = useState(false);
 
-  useFocusEffect(
-    useCallback(() => {
-      const time = setTimeout(() => {
-        setComplete(true);
-      }, 1000);
-    }, [])
-  );
-
-  const handleChange = (name, value) => {
+  const handleInput = (name, value) => {
     setPemasok((values) => ({ ...values, [name]: value }));
   };
 
-  const handleServicePemasokCreate = () => {
-    ServicePemasokCreate(pemasok)
-      .then(() => {
-        navigation.goBack();
-      })
-      .catch(() => {});
+  const pemasokCreate = () => {
+    setComplete(false);
+    const debounce = _.debounce(() => {
+      ServicePemasokCreate(pemasok)
+        .then(() => {
+          navigation.goBack();
+        })
+        .catch((error) => {
+          console.log(error);
+        })
+        .finally(() => setComplete(true));
+    }, 1000);
+    debounce();
   };
 
+  useEffect(() => {
+    setComplete(false);
+    const debounce = _.debounce(() => setComplete(true), 1000);
+    debounce();
+  }, []);
+
   return (
-    <>
+    <SafeAreaView style={{ flex: 1 }}>
       <Appbar.Header>
-        <Appbar.BackAction
-          disabled={!complete}
-          onPress={() => navigation.goBack()}
-        />
+        <Appbar.BackAction onPress={() => navigation.goBack()} />
         <Appbar.Content title="Tambah Pemasok" />
       </Appbar.Header>
-      <WidgetBaseLoader complete={complete} />
+
       {complete && (
-        <WidgetBaseContainer>
-          <WidgetBaseGroup>
+        <ScrollView
+          style={{
+            marginVertical: 24,
+            marginHorizontal: 24,
+          }}>
+          <View style={{ gap: 24 }}>
             <TextInput
               value={pemasok.kodePemasok || ""}
-              onChangeText={(text) => handleChange("kodePemasok", text)}
-              mode="outlined"
+              onChangeText={(text) => handleInput("kodePemasok", text)}
               label="Kode Pemasok"
             />
+
             <TextInput
               value={pemasok.namaPemasok || ""}
-              onChangeText={(text) => handleChange("namaPemasok", text)}
-              mode="outlined"
+              onChangeText={(text) => handleInput("namaPemasok", text)}
               label="Nama Pemasok"
             />
+
             <TextInput
-              value={pemasok.teleponPemasok || ""}
-              onChangeText={(text) => handleChange("teleponPemasok", text)}
-              mode="outlined"
-              label="Telepon Pemasok"
+              value={`${pemasok.hargaBeli || ""}`}
+              onChangeText={(text) => handleInput("hargaBeli", parseInt(text))}
+              returnKeyType={"next"}
+              keyboardType={"numeric"}
+              label="Harga Beli"
             />
+
             <TextInput
-              value={pemasok.alamatPemasok || ""}
-              onChangeText={(text) => handleChange("alamatPemasok", text)}
-              mode="outlined"
-              label="Alamat Pemasok"
+              value={`${pemasok.hargaJual || ""}`}
+              onChangeText={(text) => handleInput("hargaJual", parseInt(text))}
+              returnKeyType={"next"}
+              keyboardType={"numeric"}
+              label="Harga Jual"
             />
-          </WidgetBaseGroup>
-          <WidgetBaseGroup>
-            <Button
-              compact={false}
-              onPress={handleServicePemasokCreate}
-              mode="contained">
+
+            <TextInput
+              value={`${pemasok.jumlahPemasok || ""}`}
+              onChangeText={(text) =>
+                handleInput("jumlahPemasok", parseInt(text))
+              }
+              keyboardType={"numeric"}
+              label="Jumlah Pemasok"
+            />
+            <Button onPress={pemasokCreate} mode="contained">
               Simpan
             </Button>
-          </WidgetBaseGroup>
-        </WidgetBaseContainer>
+          </View>
+        </ScrollView>
       )}
-    </>
+
+      <WidgetBaseLoader complete={complete} />
+    </SafeAreaView>
   );
 };
 

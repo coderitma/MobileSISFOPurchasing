@@ -1,14 +1,17 @@
 import { memo } from "react";
-import { MD3Colors, ProgressBar } from "react-native-paper";
+import { StyleSheet, View } from "react-native";
+import { ActivityIndicator, MD2Colors, Modal, Text } from "react-native-paper";
 
 const WidgetBaseLoader = memo(({ complete }) => {
   if (!complete) {
     return (
-      <ProgressBar
-        style={{ justifyContent: "center", alignItems: "center" }}
-        indeterminate={true}
-        color={MD3Colors.primary40}
-      />
+      <Modal animationType="fade" style={styles.container} visible={!complete}>
+        <ActivityIndicator
+          size={32}
+          animating={true}
+          color={MD2Colors.deepOrange50}
+        />
+      </Modal>
     );
   } else {
     return null;
@@ -16,3 +19,11 @@ const WidgetBaseLoader = memo(({ complete }) => {
 });
 
 export default WidgetBaseLoader;
+
+const styles = StyleSheet.create({
+  container: {
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+});

@@ -1,17 +1,15 @@
 import {
   DrawerContentScrollView,
-  DrawerItem,
   DrawerItemList,
 } from "@react-navigation/drawer";
 import { Image, SafeAreaView, StyleSheet, Text } from "react-native";
-import { Divider, Drawer } from "react-native-paper";
+import { Divider, Drawer, MD2Colors, MD2DarkTheme } from "react-native-paper";
 
 const WidgetBaseSidebar = (props) => {
-  const imageProfile =
-    "https://icons.iconarchive.com/icons/webalys/kameleon.pics/512/Man-6-icon.png";
+  const imageProfile = require("../../../assets/adaptive-icon.png");
   return (
     <SafeAreaView style={styles.safeAreaView}>
-      <Image source={{ uri: imageProfile }} style={styles.imageProfile} />
+      <Image source={imageProfile} style={styles.imageProfile} />
       <Text style={styles.title}>Mobile SISFO Purchasing</Text>
       <Divider />
       <DrawerContentScrollView {...props}>
@@ -36,13 +34,16 @@ export default WidgetBaseSidebar;
 const styles = StyleSheet.create({
   safeAreaView: {
     flex: 1,
-    marginTop: 40,
+    marginTop: 0,
   },
   imageProfile: {
     resizeMode: "center",
-    width: 128,
-    height: 128,
+    width: "100%",
+    height: "30%",
     alignSelf: "center",
+    // borderRadius: 100,
+    padding: 10,
+    backgroundColor: MD2Colors.purple900,
   },
   title: {
     textAlign: "center",

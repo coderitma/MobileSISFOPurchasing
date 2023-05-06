@@ -5,9 +5,7 @@ import { useContext } from "react";
 import { ContextUserAuthentication } from "../../contexts/ContextUser";
 
 const ScreenUserMain = ({ navigation }) => {
-  const [isAuthenticated, setIsAuthenticated] = useContext(
-    ContextUserAuthentication
-  );
+  const [, setIsAuthenticated] = useContext(ContextUserAuthentication);
   return (
     <>
       <Appbar.Header>

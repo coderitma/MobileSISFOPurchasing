@@ -1,12 +1,12 @@
 import { StyleSheet } from "react-native";
 import { FAB } from "react-native-paper";
 
-function WidgetBaseFABCreate({ action, disabled }) {
+function WidgetBaseFABCreate({ action, disabled, icon }) {
   return (
     <FAB
       disabled={disabled}
       style={styles.fab}
-      icon="plus"
+      icon={icon || "plus"}
       onPress={() => action()}
     />
   );

@@ -2,58 +2,70 @@ import _ from "lodash";
 import { useEffect, useState } from "react";
 import { SafeAreaView } from "react-native";
 import { Appbar, DataTable, Searchbar } from "react-native-paper";
-import { ServicePemasokList } from "../../services/ServicePemasok";
+import { ServicePembelianList } from "../../services/ServicePembelian";
 import WidgetBaseFABCreate from "../../widgets/base/WidgetBaseFABCreate";
 import { ScrollView } from "react-native-gesture-handler";
 import WidgetBaseLoader from "../../widgets/base/WidgetBaseLoader";
+import {
+  ServiceBaseHumanCurrency,
+  ServiceBaseHumanDate,
+} from "../../services/ServiceBase";
 
-const ScreenPemasokList = ({ navigation }) => {
+const ScreenPembelianList = ({ navigation }) => {
   const [query, setQuery] = useState();
   const [complete, setComplete] = useState(false);
-  const [daftarPemasok, setDaftarPemasok] = useState([]);
+  const [daftarPembelian, setDaftarPembelian] = useState([]);
   const [pagination, setPagination] = useState({});
 
-  const pemasokList = _.debounce((page, terms) => {
+  const pembelianList = _.debounce((page, terms) => {
     setComplete(false);
-    ServicePemasokList(page ? page : 1, terms ? terms : "")
+    ServicePembelianList(page ? page : 1, terms ? terms : "")
       .then(({ results, pagination }) => {
         setPagination(pagination);
-        setDaftarPemasok(results);
+        setDaftarPembelian(results);
       })
       .catch((error) => console.log(error))
       .finally(() => setComplete(true));
   }, 100);
 
   const paginate = (page) => {
-    pemasokList(page, query);
+    pembelianList(page, query);
   };
 
   const search = (e) => {
-    pemasokList(1, e.nativeEvent.text);
+    pembelianList(1, e.nativeEvent.text);
   };
 
   const refresh = () => {
     setQuery("");
-    pemasokList(1, "");
+    pembelianList(1, "");
   };
 
-  const openPemasokEdit = _.debounce((pemasok) => {
-    navigation.navigate("ScreenPemasokEdit", { pemasok });
+  const openPembelianDetail = _.debounce((faktur) => {
+    navigation.navigate("ScreenPembelianDetail", { faktur });
   }, 100);
 
-  const openPemasokCreate = _.debounce(() => {
-    navigation.navigate("ScreenPemasokCreate");
+  const openPembelianCreate = _.debounce(() => {
+    navigation.navigate("ScreenPembelianCreate");
+  }, 100);
+
+  const openPembelianReporting = _.debounce(() => {
+    navigation.navigate("ScreenPembelianReporting");
   }, 100);
 
   useEffect(() => {
-    pemasokList();
+    pembelianList();
   }, []);
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <Appbar.Header>
         <Appbar.Action icon="menu" onPress={navigation.toggleDrawer} />
-        <Appbar.Content title="Pemasok" />
+        <Appbar.Content title="Pembelian" />
+        <Appbar.Action
+          icon="table-arrow-right"
+          onPress={() => openPembelianReporting()}
+        />
         <Appbar.Action icon="refresh" onPress={refresh} />
         <Appbar.Action
           icon="arrow-left"
@@ -78,28 +90,32 @@ const ScreenPemasokList = ({ navigation }) => {
 
         <DataTable>
           <DataTable.Header>
-            <DataTable.Title>Kode Pemasok</DataTable.Title>
-            <DataTable.Title>Nama Pemasok</DataTable.Title>
-            <DataTable.Title>Telepon Pemasok</DataTable.Title>
+            <DataTable.Title>Faktur</DataTable.Title>
+            <DataTable.Title>Tanggal</DataTable.Title>
+            <DataTable.Title numeric>Total</DataTable.Title>
           </DataTable.Header>
 
           {complete &&
-            daftarPemasok.map((pemasok, index) => (
+            daftarPembelian.map((pembelian, index) => (
               <DataTable.Row
                 key={index}
-                onPress={() => openPemasokEdit(pemasok)}>
-                <DataTable.Cell>{pemasok.kodePemasok}</DataTable.Cell>
-                <DataTable.Cell>{pemasok.namaPemasok}</DataTable.Cell>
-                <DataTable.Cell>{pemasok.teleponPemasok}</DataTable.Cell>
+                onPress={() => openPembelianDetail(pembelian.faktur)}>
+                <DataTable.Cell>{pembelian.faktur}</DataTable.Cell>
+                <DataTable.Cell>
+                  {ServiceBaseHumanDate(pembelian.tanggal)}
+                </DataTable.Cell>
+                <DataTable.Cell numeric>
+                  {ServiceBaseHumanCurrency(pembelian.total)}
+                </DataTable.Cell>
               </DataTable.Row>
             ))}
         </DataTable>
       </ScrollView>
 
-      <WidgetBaseFABCreate action={() => openPemasokCreate()} />
+      <WidgetBaseFABCreate action={() => openPembelianCreate()} />
       <WidgetBaseLoader complete={complete} />
     </SafeAreaView>
   );
 };
 
-export default ScreenPemasokList;
+export default ScreenPembelianList;

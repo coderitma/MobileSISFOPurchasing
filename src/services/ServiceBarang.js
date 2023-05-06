@@ -3,11 +3,12 @@ import { ServiceBaseGetToken, ServiceBaseRequest } from "./ServiceBase";
 
 export const ServiceBarangList = (page, terms) => {
   return new Promise(async (resolve, reject) => {
+    let params = { page, terms };
     const config = {
       headers: {
         "x-access-token": await ServiceBaseGetToken(),
       },
-      params: { page, terms },
+      params,
     };
     ServiceBaseRequest.get(`${CONFIG_BASE_API_URL}/barang`, config)
       .then((response) => {
@@ -36,7 +37,7 @@ export function ServiceBarangCreate(payload) {
   });
 }
 
-export function ServiceBarangEdit(kodeBarang, payload) {
+export function ServiceBarangEdit(payload) {
   return new Promise(async (resolve, reject) => {
     const config = {
       headers: {
@@ -45,7 +46,7 @@ export function ServiceBarangEdit(kodeBarang, payload) {
     };
 
     ServiceBaseRequest.put(
-      `${CONFIG_BASE_API_URL}/barang/${kodeBarang}`,
+      `${CONFIG_BASE_API_URL}/barang/${payload.kodeBarang}`,
       payload,
       config
     )

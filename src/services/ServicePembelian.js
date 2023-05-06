@@ -1,7 +1,7 @@
 import { CONFIG_BASE_API_URL } from "../config/ConfigBase";
 import { ServiceBaseGetToken, ServiceBaseRequest } from "./ServiceBase";
 
-export function ServicePemasokList(page, terms) {
+export const ServicePembelianList = (page, terms) => {
   return new Promise(async (resolve, reject) => {
     const config = {
       headers: {
@@ -9,16 +9,17 @@ export function ServicePemasokList(page, terms) {
       },
       params: { page, terms },
     };
-    ServiceBaseRequest.get(`${CONFIG_BASE_API_URL}/pemasok`, config)
+
+    ServiceBaseRequest.get(`${CONFIG_BASE_API_URL}/pembelian`, config)
       .then((response) => {
         const { results, ...pagination } = response.data;
         resolve({ results, pagination });
       })
       .catch((error) => reject(error));
   });
-}
+};
 
-export const ServicePemasokCreate = (payload) => {
+export const ServicePembelianCreate = (payload) => {
   return new Promise(async (resolve, reject) => {
     const config = {
       headers: {
@@ -26,7 +27,7 @@ export const ServicePemasokCreate = (payload) => {
       },
     };
 
-    ServiceBaseRequest.post(`${CONFIG_BASE_API_URL}/pemasok`, payload, config)
+    ServiceBaseRequest.post(`${CONFIG_BASE_API_URL}/pembelian`, payload, config)
       .then((response) => {
         resolve(response.data);
       })
@@ -34,7 +35,7 @@ export const ServicePemasokCreate = (payload) => {
   });
 };
 
-export const ServicePemasokEdit = (payload) => {
+export const ServicePembelianDetail = (faktur) => {
   return new Promise(async (resolve, reject) => {
     const config = {
       headers: {
@@ -42,32 +43,52 @@ export const ServicePemasokEdit = (payload) => {
       },
     };
 
-    ServiceBaseRequest.put(
-      `${CONFIG_BASE_API_URL}/pemasok/${payload.kodePemasok}`,
+    ServiceBaseRequest.get(`${CONFIG_BASE_API_URL}/pembelian/${faktur}`, config)
+      .then((response) => {
+        const { items, ...pembelian } = response.data;
+        resolve({ pembelian, items });
+      })
+      .catch((error) => reject(error));
+  });
+};
+
+export const ServicePembelianPrint = (faktur) => {
+  return new Promise(async (resolve, reject) => {
+    const config = {
+      headers: {
+        "x-access-token": await ServiceBaseGetToken(),
+      },
+      responseType: "blob",
+    };
+
+    ServiceBaseRequest.post(
+      `${CONFIG_BASE_API_URL}/pembelian/${faktur}/faktur-excel`,
+      null,
+      config
+    )
+      .then((response) => {
+        resolve(response);
+      })
+      .catch((error) => reject(error));
+  });
+};
+
+export const ServicePembelianReport = (payload) => {
+  return new Promise(async (resolve, reject) => {
+    const config = {
+      headers: {
+        "x-access-token": await ServiceBaseGetToken(),
+      },
+      responseType: "blob",
+    };
+
+    ServiceBaseRequest.post(
+      `${CONFIG_BASE_API_URL}/pembelian/report-period-excel`,
       payload,
       config
     )
       .then((response) => {
-        resolve(response.data);
-      })
-      .catch((error) => reject(error));
-  });
-};
-
-export const ServicePemasokDelete = (kodePemasok) => {
-  return new Promise(async (resolve, reject) => {
-    const config = {
-      headers: {
-        "x-access-token": await ServiceBaseGetToken(),
-      },
-    };
-
-    ServiceBaseRequest.delete(
-      `${CONFIG_BASE_API_URL}/pemasok/${kodePemasok}`,
-      config
-    )
-      .then(() => {
-        resolve(null);
+        resolve(response);
       })
       .catch((error) => reject(error));
   });
